@@ -25,82 +25,20 @@ public class LaporanGuruPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         setBackground(Color.WHITE);
         
-        JPanel kopPanel = new JPanel();
-        kopPanel.setLayout(new BoxLayout(kopPanel, BoxLayout.Y_AXIS));
-        kopPanel.setBackground(Color.WHITE);
-        kopPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        logoPanel.setBackground(Color.WHITE);
-        
-        JLabel logoLabel = new JLabel();
-        try {
-            ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/smapgri4.png"));
-            Image scaledImage = logoIcon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-            logoLabel.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception e) {
-            logoLabel.setText("SMA PGRI 4");
-            logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        }
-        
-        JPanel textPanel = new JPanel(new GridLayout(3, 1));
-        textPanel.setBackground(Color.WHITE);
-        
-        JLabel titleLabel = new JLabel("SMA PGRI 4 JAKARTA");
-        titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(41, 128, 185));
-        
-        JLabel subTitleLabel = new JLabel("SISTEM INFORMASI AKADEMIK");
-        subTitleLabel.setFont(new Font("Times New Roman", Font.BOLD, 14));
-        
-        JLabel addressLabel = new JLabel("Jl. Raya Bogor KM 24, Ciracas, Jakarta Timur");
-        addressLabel.setFont(new Font("Times New Roman", Font.PLAIN, 10));
-        
-        textPanel.add(titleLabel);
-        textPanel.add(subTitleLabel);
-        textPanel.add(addressLabel);
-        
-        logoPanel.add(logoLabel);
-        logoPanel.add(textPanel);
-        
-        JLabel judulLaporan = new JLabel("LAPORAN DATA GURU");
-        judulLaporan.setFont(new Font("Times New Roman", Font.BOLD, 16));
-        judulLaporan.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel tanggalCetak = new JLabel();
-        tanggalCetak.setFont(new Font("Times New Roman", Font.PLAIN, 10));
-        tanggalCetak.setAlignmentX(Component.CENTER_ALIGNMENT);
-        tanggalCetak.setForeground(Color.GRAY);
-        
-        kopPanel.add(logoPanel);
-        kopPanel.add(Box.createVerticalStrut(10));
-        kopPanel.add(judulLaporan);
-        kopPanel.add(Box.createVerticalStrut(5));
-        kopPanel.add(tanggalCetak);
-        
-        JSeparator separator = new JSeparator();
-        separator.setForeground(Color.BLACK);
-        
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.setBackground(Color.WHITE);
         
         refreshBtn = new JButton("REFRESH DATA");
         refreshBtn.setBackground(new Color(52, 152, 219));
         refreshBtn.setForeground(Color.WHITE);
-        refreshBtn.setFocusPainted(false);
-        refreshBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         cetakBtn = new JButton("CETAK PDF");
         cetakBtn.setBackground(new Color(46, 204, 113));
         cetakBtn.setForeground(Color.WHITE);
-        cetakBtn.setFocusPainted(false);
-        cetakBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         backBtn = new JButton("KEMBALI");
         backBtn.setBackground(new Color(231, 76, 60));
         backBtn.setForeground(Color.WHITE);
-        backBtn.setFocusPainted(false);
-        backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         btnPanel.add(refreshBtn);
         btnPanel.add(cetakBtn);
@@ -113,25 +51,14 @@ public class LaporanGuruPanel extends JPanel {
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(41, 128, 185));
         table.getTableHeader().setForeground(Color.WHITE);
-        table.setRowHeight(25);
         
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         
         refreshBtn.addActionListener(e -> loadData());
         cetakBtn.addActionListener(e -> cetakPDF());
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
         
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
-        tanggalCetak.setText("Dicetak: " + sdf.format(new Date()));
-        
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.add(kopPanel, BorderLayout.NORTH);
-        contentPanel.add(separator, BorderLayout.CENTER);
-        contentPanel.add(scrollPane, BorderLayout.SOUTH);
-        
-        add(contentPanel, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
         add(btnPanel, BorderLayout.SOUTH);
     }
     
@@ -141,7 +68,11 @@ public class LaporanGuruPanel extends JPanel {
         for (String[] guru : Database.getAllGuru()) {
             tableModel.addRow(new Object[]{no++, guru[0], guru[1], guru[2]});
         }
-        JOptionPane.showMessageDialog(this, "Total " + tableModel.getRowCount() + " guru.");
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Belum ada data guru.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Total " + tableModel.getRowCount() + " guru.");
+        }
     }
     
     private void cetakPDF() {
@@ -168,26 +99,15 @@ public class LaporanGuruPanel extends JPanel {
                 com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
                 com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD);
                 
-                // ========== LOGO DI PDF ==========
                 try {
                     java.net.URL imgUrl = getClass().getResource("/images/smapgri4.png");
                     if (imgUrl != null) {
                         com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgUrl);
-                        logo.scaleToFit(80, 80);
+                        logo.scaleToFit(70, 70);
                         logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                         document.add(logo);
-                    } else {
-                        java.io.File imgFile = new java.io.File("src/images/smapgri4.png");
-                        if (imgFile.exists()) {
-                            com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgFile.getAbsolutePath());
-                            logo.scaleToFit(80, 80);
-                            logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                            document.add(logo);
-                        }
                     }
-                } catch (Exception e) {
-                    System.out.println("Logo tidak ditemukan: " + e.getMessage());
-                }
+                } catch (Exception e) {}
                 
                 com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("SMA PGRI 4 JAKARTA", titleFont);
                 title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);

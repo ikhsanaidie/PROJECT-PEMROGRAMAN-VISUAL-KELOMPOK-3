@@ -1,14 +1,13 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
 
 public class DataGuruPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private DefaultTableModel tableModel;
-    private JTextField nipField, namaField, mapelField;
     private JTable table;
+    private JTextField nipField, namaField, mapelField;
     
     public DataGuruPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
@@ -20,8 +19,12 @@ public class DataGuruPanel extends JPanel {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        setBackground(Color.WHITE);
         
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createTitledBorder("Form Data Guru"));
+        formPanel.setBackground(Color.WHITE);
+        
         nipField = new JTextField();
         namaField = new JTextField();
         mapelField = new JTextField();
@@ -33,23 +36,44 @@ public class DataGuruPanel extends JPanel {
         formPanel.add(new JLabel("Mata Pelajaran:"));
         formPanel.add(mapelField);
         
-        String[] columns = {"NIP", "Nama Guru", "Mata Pelajaran"};
-        tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        btnPanel.setBackground(Color.WHITE);
         
-        JPanel btnPanel = new JPanel(new FlowLayout());
         JButton tambahBtn = new JButton("TAMBAH");
+        tambahBtn.setBackground(new Color(46, 204, 113));
+        tambahBtn.setForeground(Color.WHITE);
+        
         JButton ubahBtn = new JButton("UBAH");
+        ubahBtn.setBackground(new Color(52, 152, 219));
+        ubahBtn.setForeground(Color.WHITE);
+        
         JButton hapusBtn = new JButton("HAPUS");
+        hapusBtn.setBackground(new Color(231, 76, 60));
+        hapusBtn.setForeground(Color.WHITE);
+        
         JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn.setBackground(new Color(52, 152, 219));
+        refreshBtn.setForeground(Color.WHITE);
+        
         JButton backBtn = new JButton("KEMBALI");
+        backBtn.setBackground(new Color(52, 73, 94));
+        backBtn.setForeground(Color.WHITE);
         
         btnPanel.add(tambahBtn);
         btnPanel.add(ubahBtn);
         btnPanel.add(hapusBtn);
         btnPanel.add(refreshBtn);
         btnPanel.add(backBtn);
+        
+        String[] columns = {"NIP", "Nama Guru", "Mata Pelajaran"};
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
+        table.setFont(new Font("Arial", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        table.getTableHeader().setBackground(new Color(41, 128, 185));
+        table.getTableHeader().setForeground(Color.WHITE);
+        
+        JScrollPane scrollPane = new JScrollPane(table);
         
         tambahBtn.addActionListener(e -> tambahData());
         ubahBtn.addActionListener(e -> ubahData());
@@ -75,9 +99,13 @@ public class DataGuruPanel extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        List<String[]> guruList = Database.getAllGuru();
-        for (String[] guru : guruList) {
+        for (String[] guru : Database.getAllGuru()) {
             tableModel.addRow(guru);
+        }
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Belum ada data guru. Silakan tambah data terlebih dahulu.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Total " + tableModel.getRowCount() + " guru.");
         }
     }
     
@@ -91,14 +119,15 @@ public class DataGuruPanel extends JPanel {
             return;
         }
         
-        Database.dataGuruModel.addRow(new Object[]{nip, nama, mapel});
-        loadData();
-        
-        nipField.setText("");
-        namaField.setText("");
-        mapelField.setText("");
-        
-        JOptionPane.showMessageDialog(this, "Data berhasil ditambahkan!");
+        if (Database.tambahGuru(nip, nama, mapel)) {
+            loadData();
+            nipField.setText("");
+            namaField.setText("");
+            mapelField.setText("");
+            JOptionPane.showMessageDialog(this, "Data guru berhasil ditambahkan!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Gagal menambahkan data! NIP mungkin sudah ada.");
+        }
     }
     
     private void ubahData() {
@@ -108,21 +137,22 @@ public class DataGuruPanel extends JPanel {
             return;
         }
         
-        String nip = nipField.getText().trim();
+        String nipLama = tableModel.getValueAt(row, 0).toString();
+        String nipBaru = nipField.getText().trim();
         String nama = namaField.getText().trim();
         String mapel = mapelField.getText().trim();
         
-        if (nip.isEmpty() || nama.isEmpty() || mapel.isEmpty()) {
+        if (nipBaru.isEmpty() || nama.isEmpty() || mapel.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
             return;
         }
         
-        Database.dataGuruModel.setValueAt(nip, row, 0);
-        Database.dataGuruModel.setValueAt(nama, row, 1);
-        Database.dataGuruModel.setValueAt(mapel, row, 2);
-        
-        loadData();
-        JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
+        if (Database.updateGuru(nipLama, nipBaru, nama, mapel)) {
+            loadData();
+            JOptionPane.showMessageDialog(this, "Data guru berhasil diubah!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Gagal mengubah data!");
+        }
     }
     
     private void hapusData() {
@@ -132,11 +162,15 @@ public class DataGuruPanel extends JPanel {
             return;
         }
         
-        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus data ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Yakin hapus data guru ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            Database.dataGuruModel.removeRow(row);
-            loadData();
-            JOptionPane.showMessageDialog(this, "Data dihapus!");
+            String nip = tableModel.getValueAt(row, 0).toString();
+            if (Database.hapusGuru(nip)) {
+                loadData();
+                JOptionPane.showMessageDialog(this, "Data guru dihapus!");
+            } else {
+                JOptionPane.showMessageDialog(this, "Gagal menghapus data!");
+            }
         }
     }
 }

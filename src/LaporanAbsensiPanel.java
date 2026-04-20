@@ -43,26 +43,18 @@ public class LaporanAbsensiPanel extends JPanel {
         filterBtn = new JButton("TAMPILKAN");
         filterBtn.setBackground(new Color(52, 152, 219));
         filterBtn.setForeground(Color.WHITE);
-        filterBtn.setFocusPainted(false);
-        filterBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         refreshBtn = new JButton("REFRESH");
         refreshBtn.setBackground(new Color(52, 152, 219));
         refreshBtn.setForeground(Color.WHITE);
-        refreshBtn.setFocusPainted(false);
-        refreshBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         cetakBtn = new JButton("CETAK PDF");
         cetakBtn.setBackground(new Color(46, 204, 113));
         cetakBtn.setForeground(Color.WHITE);
-        cetakBtn.setFocusPainted(false);
-        cetakBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         backBtn = new JButton("KEMBALI");
         backBtn.setBackground(new Color(231, 76, 60));
         backBtn.setForeground(Color.WHITE);
-        backBtn.setFocusPainted(false);
-        backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         filterPanel.add(new JLabel("Kelas:"));
         filterPanel.add(kelasCombo);
@@ -80,10 +72,8 @@ public class LaporanAbsensiPanel extends JPanel {
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(41, 128, 185));
         table.getTableHeader().setForeground(Color.WHITE);
-        table.setRowHeight(25);
         
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         
         filterBtn.addActionListener(e -> filterData());
         refreshBtn.addActionListener(e -> {
@@ -106,7 +96,7 @@ public class LaporanAbsensiPanel extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        for (String[] a : Database.getAllAbsensi()) {
+        for (Object[] a : Database.getAllAbsensi()) {
             tableModel.addRow(new Object[]{a[0], a[1], a[2], a[3], a[4]});
         }
     }
@@ -117,11 +107,14 @@ public class LaporanAbsensiPanel extends JPanel {
         
         tableModel.setRowCount(0);
         
-        for (String[] a : Database.getAllAbsensi()) {
-            if (!a[1].equals(selectedKelas)) continue;
+        for (Object[] a : Database.getAllAbsensi()) {
+            String tgl = a[0].toString();
+            String kelas = a[1].toString();
+            
+            if (!kelas.equals(selectedKelas)) continue;
             
             if (!selectedBulan.equals("Semua Bulan")) {
-                String[] tglParts = a[0].split("-");
+                String[] tglParts = tgl.split("-");
                 if (tglParts.length >= 2) {
                     int bulanNum = Integer.parseInt(tglParts[1]);
                     String[] namaBulan = {"Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -136,8 +129,6 @@ public class LaporanAbsensiPanel extends JPanel {
         
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Tidak ada data absensi untuk filter ini");
-        } else {
-            JOptionPane.showMessageDialog(this, "Menampilkan " + tableModel.getRowCount() + " data absensi");
         }
     }
     
@@ -165,26 +156,15 @@ public class LaporanAbsensiPanel extends JPanel {
                 com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
                 com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD);
                 
-                // ========== LOGO DI PDF ==========
                 try {
                     java.net.URL imgUrl = getClass().getResource("/images/smapgri4.png");
                     if (imgUrl != null) {
                         com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgUrl);
-                        logo.scaleToFit(80, 80);
+                        logo.scaleToFit(70, 70);
                         logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                         document.add(logo);
-                    } else {
-                        java.io.File imgFile = new java.io.File("src/images/smapgri4.png");
-                        if (imgFile.exists()) {
-                            com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgFile.getAbsolutePath());
-                            logo.scaleToFit(80, 80);
-                            logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                            document.add(logo);
-                        }
                     }
-                } catch (Exception e) {
-                    System.out.println("Logo tidak ditemukan: " + e.getMessage());
-                }
+                } catch (Exception e) {}
                 
                 com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("SMA PGRI 4 JAKARTA", titleFont);
                 title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);

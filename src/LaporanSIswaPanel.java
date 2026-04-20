@@ -6,14 +6,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class LaporanSIswaPanel extends JPanel {
+public class LaporanSiswaPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private DefaultTableModel tableModel;
     private JTable table;
     private JButton refreshBtn, cetakBtn, backBtn;
     
-    public LaporanSIswaPanel(CardLayout cardLayout, JPanel mainPanel) {
+    public LaporanSiswaPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
         initComponents();
@@ -25,64 +25,7 @@ public class LaporanSIswaPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         setBackground(Color.WHITE);
         
-        // Header Kop Surat
-        JPanel kopPanel = new JPanel();
-        kopPanel.setLayout(new BoxLayout(kopPanel, BoxLayout.Y_AXIS));
-        kopPanel.setBackground(Color.WHITE);
-        kopPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        logoPanel.setBackground(Color.WHITE);
-        
-        JLabel logoLabel = new JLabel();
-        try {
-            ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/smapgri4.png"));
-            Image scaledImage = logoIcon.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-            logoLabel.setIcon(new ImageIcon(scaledImage));
-        } catch (Exception e) {
-            logoLabel.setText("SMA PGRI 4");
-            logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        }
-        
-        JPanel textPanel = new JPanel(new GridLayout(3, 1));
-        textPanel.setBackground(Color.WHITE);
-        
-        JLabel titleLabel = new JLabel("SMA PGRI 4 JAKARTA");
-        titleLabel.setFont(new Font("Times New Roman", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(41, 128, 185));
-        
-        JLabel subTitleLabel = new JLabel("SISTEM INFORMASI AKADEMIK");
-        subTitleLabel.setFont(new Font("Times New Roman", Font.BOLD, 14));
-        
-        JLabel addressLabel = new JLabel("Jl. Raya Bogor KM 24, Ciracas, Jakarta Timur");
-        addressLabel.setFont(new Font("Times New Roman", Font.PLAIN, 10));
-        
-        textPanel.add(titleLabel);
-        textPanel.add(subTitleLabel);
-        textPanel.add(addressLabel);
-        
-        logoPanel.add(logoLabel);
-        logoPanel.add(textPanel);
-        
-        JLabel judulLaporan = new JLabel("LAPORAN DATA SISWA");
-        judulLaporan.setFont(new Font("Times New Roman", Font.BOLD, 16));
-        judulLaporan.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        JLabel tanggalCetak = new JLabel();
-        tanggalCetak.setFont(new Font("Times New Roman", Font.PLAIN, 10));
-        tanggalCetak.setAlignmentX(Component.CENTER_ALIGNMENT);
-        tanggalCetak.setForeground(Color.GRAY);
-        
-        kopPanel.add(logoPanel);
-        kopPanel.add(Box.createVerticalStrut(10));
-        kopPanel.add(judulLaporan);
-        kopPanel.add(Box.createVerticalStrut(5));
-        kopPanel.add(tanggalCetak);
-        
-        JSeparator separator = new JSeparator();
-        separator.setForeground(Color.BLACK);
-        
-        // Tombol
+        // Panel Tombol
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.setBackground(Color.WHITE);
         
@@ -108,7 +51,7 @@ public class LaporanSIswaPanel extends JPanel {
         btnPanel.add(cetakBtn);
         btnPanel.add(backBtn);
         
-        // Tabel dengan kolom baru
+        // Tabel
         String[] columns = {"No", "NISN", "Nama", "Jenis Kelamin", "Agama", "Alamat", "Kelas"};
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
@@ -126,16 +69,7 @@ public class LaporanSIswaPanel extends JPanel {
         cetakBtn.addActionListener(e -> cetakPDF());
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
         
-        SimpleDateFormat sdf = new SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
-        tanggalCetak.setText("Dicetak: " + sdf.format(new Date()));
-        
-        JPanel contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(Color.WHITE);
-        contentPanel.add(kopPanel, BorderLayout.NORTH);
-        contentPanel.add(separator, BorderLayout.CENTER);
-        contentPanel.add(scrollPane, BorderLayout.SOUTH);
-        
-        add(contentPanel, BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
         add(btnPanel, BorderLayout.SOUTH);
     }
     
@@ -143,17 +77,13 @@ public class LaporanSIswaPanel extends JPanel {
         tableModel.setRowCount(0);
         int no = 1;
         for (String[] siswa : Database.getAllSiswa()) {
-            tableModel.addRow(new Object[]{
-                no++, 
-                siswa[0], // NISN
-                siswa[1], // Nama
-                siswa[2], // Jenis Kelamin
-                siswa[3], // Agama
-                siswa[4], // Alamat
-                siswa[5]  // Kelas
-            });
+            tableModel.addRow(new Object[]{no++, siswa[0], siswa[1], siswa[2], siswa[3], siswa[4], siswa[5]});
         }
-        JOptionPane.showMessageDialog(this, "Total " + tableModel.getRowCount() + " siswa.");
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Belum ada data siswa.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Total " + tableModel.getRowCount() + " siswa.");
+        }
     }
     
     private void cetakPDF() {
@@ -175,6 +105,7 @@ public class LaporanSIswaPanel extends JPanel {
                 com.itextpdf.text.pdf.PdfWriter.getInstance(document, new FileOutputStream(filePath));
                 document.open();
                 
+                // Font
                 com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 18, com.itextpdf.text.Font.BOLD);
                 com.itextpdf.text.Font subTitleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 14, com.itextpdf.text.Font.BOLD);
                 com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
@@ -191,6 +122,7 @@ public class LaporanSIswaPanel extends JPanel {
                     }
                 } catch (Exception e) {}
                 
+                // Kop Surat
                 com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("SMA PGRI 4 JAKARTA", titleFont);
                 title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(title);
@@ -205,6 +137,7 @@ public class LaporanSIswaPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Garis
                 com.itextpdf.text.pdf.PdfPTable lineTable = new com.itextpdf.text.pdf.PdfPTable(1);
                 lineTable.setWidthPercentage(100);
                 com.itextpdf.text.pdf.PdfPCell lineCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(" "));
@@ -215,6 +148,7 @@ public class LaporanSIswaPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Judul
                 com.itextpdf.text.Paragraph judul = new com.itextpdf.text.Paragraph("LAPORAN DATA SISWA", headerFont);
                 judul.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(judul);
@@ -226,7 +160,7 @@ public class LaporanSIswaPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
-                // Tabel dengan 7 kolom
+                // Tabel
                 com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(7);
                 pdfTable.setWidthPercentage(100);
                 pdfTable.setWidths(new float[]{0.5f, 1.2f, 1.8f, 1.2f, 1f, 2f, 1.2f});
@@ -236,7 +170,7 @@ public class LaporanSIswaPanel extends JPanel {
                     com.itextpdf.text.pdf.PdfPCell headerCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header, headerFont));
                     headerCell.setBackgroundColor(new com.itextpdf.text.BaseColor(41, 128, 185));
                     headerCell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                    headerCell.setPadding(6);
+                    headerCell.setPadding(8);
                     pdfTable.addCell(headerCell);
                 }
                 
@@ -244,7 +178,7 @@ public class LaporanSIswaPanel extends JPanel {
                     for (int j = 0; j < 7; j++) {
                         String value = tableModel.getValueAt(i, j) != null ? tableModel.getValueAt(i, j).toString() : "";
                         com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(value, normalFont));
-                        cell.setPadding(5);
+                        cell.setPadding(6);
                         pdfTable.addCell(cell);
                     }
                 }
@@ -252,6 +186,7 @@ public class LaporanSIswaPanel extends JPanel {
                 document.add(pdfTable);
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Footer
                 com.itextpdf.text.Paragraph footer = new com.itextpdf.text.Paragraph("Dicetak dari Sistem Informasi Akademik SMA PGRI 4 Jakarta", normalFont);
                 footer.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(footer);
@@ -265,7 +200,7 @@ public class LaporanSIswaPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "PDF berhasil disimpan!\nLokasi: " + filePath);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage() + "\n\nPastikan library iTextPDF sudah ditambahkan.");
         }
     }
 }

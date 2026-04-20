@@ -2,6 +2,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import javax.swing.table.TableColumn;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class AbsensiPanel extends JPanel {
     private CardLayout cardLayout;
@@ -35,12 +37,10 @@ public class AbsensiPanel extends JPanel {
         JButton filterBtn = new JButton("TAMPILKAN SISWA");
         filterBtn.setBackground(new Color(52, 152, 219));
         filterBtn.setForeground(Color.WHITE);
-        filterBtn.setFocusPainted(false);
-        filterBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         filterPanel.add(new JLabel("Kelas:"));
         filterPanel.add(kelasCombo);
-        filterPanel.add(new JLabel("Tanggal (DD-MM-YYYY):"));
+        filterPanel.add(new JLabel("Tanggal (YYYY-MM-DD):"));
         filterPanel.add(tanggalField);
         filterPanel.add(filterBtn);
         
@@ -48,7 +48,8 @@ public class AbsensiPanel extends JPanel {
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
         table.setRowHeight(35);
-        table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+        table.setFont(new Font("Arial", Font.PLAIN, 12));
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(41, 128, 185));
         table.getTableHeader().setForeground(Color.WHITE);
         
@@ -57,7 +58,6 @@ public class AbsensiPanel extends JPanel {
         statusColumn.setCellEditor(new DefaultCellEditor(statusCombo));
         
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
         
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.setBackground(Color.WHITE);
@@ -65,18 +65,14 @@ public class AbsensiPanel extends JPanel {
         JButton simpanBtn = new JButton("SIMPAN ABSENSI");
         simpanBtn.setBackground(new Color(46, 204, 113));
         simpanBtn.setForeground(Color.WHITE);
-        simpanBtn.setFocusPainted(false);
-        simpanBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         JButton refreshBtn = new JButton("REFRESH");
         refreshBtn.setBackground(new Color(52, 152, 219));
         refreshBtn.setForeground(Color.WHITE);
-        refreshBtn.setFocusPainted(false);
         
         JButton backBtn = new JButton("KEMBALI");
         backBtn.setBackground(new Color(231, 76, 60));
         backBtn.setForeground(Color.WHITE);
-        backBtn.setFocusPainted(false);
         
         btnPanel.add(simpanBtn);
         btnPanel.add(refreshBtn);
@@ -96,8 +92,8 @@ public class AbsensiPanel extends JPanel {
     }
     
     private String getCurrentDate() {
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd-MM-yyyy");
-        return sdf.format(new java.util.Date());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(new Date());
     }
     
     private void loadKelas() {
@@ -118,10 +114,9 @@ public class AbsensiPanel extends JPanel {
             String status = "Hadir";
             String tanggal = tanggalField.getText().trim();
             
-            for (int i = 0; i < Database.dataAbsensiModel.getRowCount(); i++) {
-                if (Database.dataAbsensiModel.getValueAt(i, 0).toString().equals(tanggal) &&
-                    Database.dataAbsensiModel.getValueAt(i, 2).toString().equals(siswa[0])) {
-                    status = Database.dataAbsensiModel.getValueAt(i, 4).toString();
+            for (Object[] absen : Database.getAllAbsensi()) {
+                if (absen[0].toString().equals(tanggal) && absen[2].toString().equals(siswa[0])) {
+                    status = absen[4].toString();
                     break;
                 }
             }
@@ -143,21 +138,21 @@ public class AbsensiPanel extends JPanel {
             return;
         }
         
-        for (int i = Database.dataAbsensiModel.getRowCount() - 1; i >= 0; i--) {
-            if (Database.dataAbsensiModel.getValueAt(i, 0).toString().equals(tanggal) &&
-                Database.dataAbsensiModel.getValueAt(i, 1).toString().equals(kelas)) {
-                Database.dataAbsensiModel.removeRow(i);
-            }
-        }
-        
+        boolean allSuccess = true;
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             String nisn = tableModel.getValueAt(i, 1).toString();
             String nama = tableModel.getValueAt(i, 2).toString();
             String status = tableModel.getValueAt(i, 3).toString();
             
-            Database.dataAbsensiModel.addRow(new Object[]{tanggal, kelas, nisn, nama, status});
+            if (!Database.simpanAbsensi(tanggal, kelas, nisn, nama, status)) {
+                allSuccess = false;
+            }
         }
         
-        JOptionPane.showMessageDialog(this, "Absensi tanggal " + tanggal + " untuk kelas " + kelas + " berhasil disimpan!");
+        if (allSuccess) {
+            JOptionPane.showMessageDialog(this, "Absensi tanggal " + tanggal + " untuk kelas " + kelas + " berhasil disimpan!");
+        } else {
+            JOptionPane.showMessageDialog(this, "Beberapa data absensi gagal disimpan!");
+        }
     }
 }
