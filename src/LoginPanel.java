@@ -8,14 +8,14 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwordField;
     private JComboBox<String> roleCombo;
     private String[] quotes = {
-        "\"Pendidikan adalah senjata paling ampuh untuk mengubah dunia.\" - Nelson Mandela",
-        "\"Belajar tanpa berpikir tidak ada gunanya, berpikir tanpa belajar itu berbahaya.\" - Soekarno",
-        "\"Ilmu tanpa agama buta, agama tanpa ilmu lumpuh.\" - KH. Ahmad Dahlan",
-        "\"Hiduplah seolah engkau mati besok, belajarlah seolah engkau hidup selamanya.\" - Mahatma Gandhi",
-        "\"Pendidikan bukanlah persiapan untuk hidup, pendidikan adalah kehidupan itu sendiri.\" - John Dewey",
-        "\"Jadilah manusia yang bermanfaat bagi orang lain.\" - Ki Hajar Dewantara",
-        "\"Tuntutlah ilmu dari buaian hingga liang lahat.\" - Muhammad SAW",
-        "\"Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain.\" - Muhammad SAW"
+        "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.",
+        "Belajar tanpa berpikir tidak ada gunanya, berpikir tanpa belajar itu berbahaya.",
+        "Ilmu tanpa agama buta, agama tanpa ilmu lumpuh.",
+        "Hiduplah seolah engkau mati besok, belajarlah seolah engkau hidup selamanya.",
+        "Pendidikan bukanlah persiapan untuk hidup, pendidikan adalah kehidupan itu sendiri.",
+        "Jadilah manusia yang bermanfaat bagi orang lain.",
+        "Tuntutlah ilmu dari buaian hingga liang lahat.",
+        "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain."
     };
     private JLabel quoteLabel;
     private int quoteIndex = 0;
@@ -30,11 +30,10 @@ public class LoginPanel extends JPanel {
     
     private void initComponents() {
         setLayout(new GridLayout(1, 2));
-        setBackground(new Color(240, 248, 255));
+        setBackground(new Color(245, 245, 250));
         
         // ============ PANEL KIRI (FORM LOGIN) ============
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new GridBagLayout());
+        JPanel leftPanel = new JPanel(new GridBagLayout());
         leftPanel.setBackground(Color.WHITE);
         leftPanel.setBorder(BorderFactory.createEmptyBorder(40, 50, 40, 50));
         
@@ -46,11 +45,12 @@ public class LoginPanel extends JPanel {
         JLabel logoLabel = new JLabel();
         try {
             ImageIcon logoIcon = new ImageIcon(getClass().getResource("/images/smapgri4.png"));
-            Image scaledImage = logoIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            Image scaledImage = logoIcon.getImage().getScaledInstance(90, 90, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledImage));
         } catch (Exception e) {
             logoLabel.setText("SMA PGRI 4");
             logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+            logoLabel.setForeground(new Color(41, 128, 185));
         }
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -65,14 +65,14 @@ public class LoginPanel extends JPanel {
         leftPanel.add(schoolName, gbc);
         
         JLabel systemName = new JLabel("SISTEM INFORMASI AKADEMIK");
-        systemName.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        systemName.setForeground(new Color(100, 100, 100));
+        systemName.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        systemName.setForeground(new Color(120, 120, 120));
         gbc.gridy = 2;
         leftPanel.add(systemName, gbc);
         
         // Separator
         JSeparator separator = new JSeparator();
-        separator.setPreferredSize(new Dimension(300, 10));
+        separator.setPreferredSize(new Dimension(280, 10));
         gbc.gridy = 3;
         leftPanel.add(separator, gbc);
         
@@ -80,50 +80,31 @@ public class LoginPanel extends JPanel {
         gbc.gridwidth = 1;
         gbc.gridy = 4;
         gbc.gridx = 0;
-        JLabel userIcon = new JLabel("👤");
-        userIcon.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 20));
-        leftPanel.add(userIcon, gbc);
+        leftPanel.add(new JLabel("Username"), gbc);
         
         gbc.gridx = 1;
         usernameField = new JTextField(20);
         usernameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        usernameField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-        ));
         leftPanel.add(usernameField, gbc);
         
         // Password
         gbc.gridy = 5;
         gbc.gridx = 0;
-        JLabel passIcon = new JLabel("🔒");
-        passIcon.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 20));
-        leftPanel.add(passIcon, gbc);
+        leftPanel.add(new JLabel("Password"), gbc);
         
         gbc.gridx = 1;
         passwordField = new JPasswordField(20);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-        ));
         leftPanel.add(passwordField, gbc);
         
         // Role
         gbc.gridy = 6;
         gbc.gridx = 0;
-        JLabel roleIcon = new JLabel("👔");
-        roleIcon.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 20));
-        leftPanel.add(roleIcon, gbc);
+        leftPanel.add(new JLabel("Hak Akses"), gbc);
         
         gbc.gridx = 1;
         roleCombo = new JComboBox<>(new String[]{"Admin TU", "Guru"});
         roleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        roleCombo.setBackground(Color.WHITE);
-        roleCombo.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
-        ));
         leftPanel.add(roleCombo, gbc);
         
         // Login Button
@@ -131,27 +112,16 @@ public class LoginPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridwidth = 2;
         JButton loginBtn = new JButton("LOGIN");
-        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         loginBtn.setBackground(new Color(41, 128, 185));
         loginBtn.setForeground(Color.WHITE);
         loginBtn.setFocusPainted(false);
-        loginBtn.setBorder(BorderFactory.createEmptyBorder(14, 30, 14, 30));
         loginBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        loginBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                loginBtn.setBackground(new Color(52, 152, 219));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                loginBtn.setBackground(new Color(41, 128, 185));
-            }
-        });
-        
         leftPanel.add(loginBtn, gbc);
         
         // Info
         gbc.gridy = 8;
-        JLabel infoLabel = new JLabel("Username: admin / guru | Password: (bebas)");
+        JLabel infoLabel = new JLabel("Username: admin / guru  |  Password: (bebas)");
         infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         infoLabel.setForeground(new Color(150, 150, 150));
         leftPanel.add(infoLabel, gbc);
@@ -166,8 +136,7 @@ public class LoginPanel extends JPanel {
         });
         
         // ============ PANEL KANAN (QUOTES) ============
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new GridBagLayout());
+        JPanel rightPanel = new JPanel(new GridBagLayout());
         rightPanel.setBackground(new Color(41, 128, 185));
         rightPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
         
@@ -213,10 +182,10 @@ public class LoginPanel extends JPanel {
     }
     
     private void startQuoteRotation() {
-        quoteLabel.setText("<html><div style='text-align: center; width: 350px;'>" + quotes[0] + "</div></html>");
+        quoteLabel.setText("<html><div style='text-align: center; width: 320px;'>" + quotes[0] + "</div></html>");
         quoteTimer = new Timer(7000, e -> {
             quoteIndex = (quoteIndex + 1) % quotes.length;
-            quoteLabel.setText("<html><div style='text-align: center; width: 350px;'>" + quotes[quoteIndex] + "</div></html>");
+            quoteLabel.setText("<html><div style='text-align: center; width: 320px;'>" + quotes[quoteIndex] + "</div></html>");
         });
         quoteTimer.start();
     }

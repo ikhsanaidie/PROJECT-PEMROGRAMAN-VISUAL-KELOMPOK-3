@@ -7,18 +7,27 @@ public class Database {
     // ==================== SISWA ====================
     public static List<String[]> getAllSiswa() {
         List<String[]> list = new ArrayList<>();
-        String query = "SELECT nisn, nama, jk, agama, alamat, kelas FROM tbl_siswa ORDER BY nisn";
+        String query = "SELECT nisn, nis, nama, jk, tempat_lahir, tgl_lahir, agama, alamat, no_hp, email, kelas, jurusan, tahun_masuk, nama_ayah, nama_ibu FROM tbl_siswa ORDER BY nisn";
         
         try (Statement stmt = KoneksiDB.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 String[] row = {
                     rs.getString("nisn"),
+                    rs.getString("nis"),
                     rs.getString("nama"),
                     rs.getString("jk"),
+                    rs.getString("tempat_lahir"),
+                    rs.getString("tgl_lahir") != null ? rs.getString("tgl_lahir") : "",
                     rs.getString("agama"),
                     rs.getString("alamat"),
-                    rs.getString("kelas")
+                    rs.getString("no_hp"),
+                    rs.getString("email"),
+                    rs.getString("kelas"),
+                    rs.getString("jurusan"),
+                    rs.getString("tahun_masuk"),
+                    rs.getString("nama_ayah"),
+                    rs.getString("nama_ibu")
                 };
                 list.add(row);
             }
@@ -29,18 +38,27 @@ public class Database {
     }
     
     public static String[] getSiswaByNISN(String nisn) {
-        String query = "SELECT nisn, nama, jk, agama, alamat, kelas FROM tbl_siswa WHERE nisn = ?";
+        String query = "SELECT nisn, nis, nama, jk, tempat_lahir, tgl_lahir, agama, alamat, no_hp, email, kelas, jurusan, tahun_masuk, nama_ayah, nama_ibu FROM tbl_siswa WHERE nisn = ?";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nisn);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return new String[]{
                     rs.getString("nisn"),
+                    rs.getString("nis"),
                     rs.getString("nama"),
                     rs.getString("jk"),
+                    rs.getString("tempat_lahir"),
+                    rs.getString("tgl_lahir") != null ? rs.getString("tgl_lahir") : "",
                     rs.getString("agama"),
                     rs.getString("alamat"),
-                    rs.getString("kelas")
+                    rs.getString("no_hp"),
+                    rs.getString("email"),
+                    rs.getString("kelas"),
+                    rs.getString("jurusan"),
+                    rs.getString("tahun_masuk"),
+                    rs.getString("nama_ayah"),
+                    rs.getString("nama_ibu")
                 };
             }
         } catch (SQLException e) {
@@ -49,15 +67,27 @@ public class Database {
         return null;
     }
     
-    public static boolean tambahSiswa(String nisn, String nama, String jk, String agama, String alamat, String kelas) {
-        String query = "INSERT INTO tbl_siswa (nisn, nama, jk, agama, alamat, kelas) VALUES (?, ?, ?, ?, ?, ?)";
+    public static boolean tambahSiswa(String nisn, String nis, String nama, String jk, 
+                                      String tempatLahir, String tglLahir, String agama, 
+                                      String alamat, String noHp, String email, String kelas, 
+                                      String jurusan, String tahunMasuk, String namaAyah, String namaIbu) {
+        String query = "INSERT INTO tbl_siswa (nisn, nis, nama, jk, tempat_lahir, tgl_lahir, agama, alamat, no_hp, email, kelas, jurusan, tahun_masuk, nama_ayah, nama_ibu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nisn);
-            pstmt.setString(2, nama);
-            pstmt.setString(3, jk);
-            pstmt.setString(4, agama);
-            pstmt.setString(5, alamat);
-            pstmt.setString(6, kelas);
+            pstmt.setString(2, nis);
+            pstmt.setString(3, nama);
+            pstmt.setString(4, jk);
+            pstmt.setString(5, tempatLahir);
+            pstmt.setString(6, tglLahir);
+            pstmt.setString(7, agama);
+            pstmt.setString(8, alamat);
+            pstmt.setString(9, noHp);
+            pstmt.setString(10, email);
+            pstmt.setString(11, kelas);
+            pstmt.setString(12, jurusan);
+            pstmt.setString(13, tahunMasuk);
+            pstmt.setString(14, namaAyah);
+            pstmt.setString(15, namaIbu);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -65,16 +95,29 @@ public class Database {
         }
     }
     
-    public static boolean updateSiswa(String nisnLama, String nisnBaru, String nama, String jk, String agama, String alamat, String kelas) {
-        String query = "UPDATE tbl_siswa SET nisn = ?, nama = ?, jk = ?, agama = ?, alamat = ?, kelas = ? WHERE nisn = ?";
+    public static boolean updateSiswa(String nisnLama, String nisnBaru, String nis, String nama, 
+                                      String jk, String tempatLahir, String tglLahir, 
+                                      String agama, String alamat, String noHp, String email, 
+                                      String kelas, String jurusan, String tahunMasuk, 
+                                      String namaAyah, String namaIbu) {
+        String query = "UPDATE tbl_siswa SET nisn = ?, nis = ?, nama = ?, jk = ?, tempat_lahir = ?, tgl_lahir = ?, agama = ?, alamat = ?, no_hp = ?, email = ?, kelas = ?, jurusan = ?, tahun_masuk = ?, nama_ayah = ?, nama_ibu = ? WHERE nisn = ?";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nisnBaru);
-            pstmt.setString(2, nama);
-            pstmt.setString(3, jk);
-            pstmt.setString(4, agama);
-            pstmt.setString(5, alamat);
-            pstmt.setString(6, kelas);
-            pstmt.setString(7, nisnLama);
+            pstmt.setString(2, nis);
+            pstmt.setString(3, nama);
+            pstmt.setString(4, jk);
+            pstmt.setString(5, tempatLahir);
+            pstmt.setString(6, tglLahir);
+            pstmt.setString(7, agama);
+            pstmt.setString(8, alamat);
+            pstmt.setString(9, noHp);
+            pstmt.setString(10, email);
+            pstmt.setString(11, kelas);
+            pstmt.setString(12, jurusan);
+            pstmt.setString(13, tahunMasuk);
+            pstmt.setString(14, namaAyah);
+            pstmt.setString(15, namaIbu);
+            pstmt.setString(16, nisnLama);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -95,18 +138,27 @@ public class Database {
     
     public static List<String[]> getSiswaByKelas(String kelas) {
         List<String[]> list = new ArrayList<>();
-        String query = "SELECT nisn, nama, jk, agama, alamat, kelas FROM tbl_siswa WHERE kelas = ?";
+        String query = "SELECT nisn, nis, nama, jk, tempat_lahir, tgl_lahir, agama, alamat, no_hp, email, kelas, jurusan, tahun_masuk, nama_ayah, nama_ibu FROM tbl_siswa WHERE kelas = ? ORDER BY nama";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, kelas);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 list.add(new String[]{
                     rs.getString("nisn"),
+                    rs.getString("nis"),
                     rs.getString("nama"),
                     rs.getString("jk"),
+                    rs.getString("tempat_lahir"),
+                    rs.getString("tgl_lahir") != null ? rs.getString("tgl_lahir") : "",
                     rs.getString("agama"),
                     rs.getString("alamat"),
-                    rs.getString("kelas")
+                    rs.getString("no_hp"),
+                    rs.getString("email"),
+                    rs.getString("kelas"),
+                    rs.getString("jurusan"),
+                    rs.getString("tahun_masuk"),
+                    rs.getString("nama_ayah"),
+                    rs.getString("nama_ibu")
                 });
             }
         } catch (SQLException e) {
@@ -118,12 +170,13 @@ public class Database {
     // ==================== GURU ====================
     public static List<String[]> getAllGuru() {
         List<String[]> list = new ArrayList<>();
-        String query = "SELECT nip, nama_guru, mapel FROM tbl_guru ORDER BY nip";
+        String query = "SELECT nip, jk, nama_guru, mapel FROM tbl_guru ORDER BY nip";
         try (Statement stmt = KoneksiDB.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 list.add(new String[]{
                     rs.getString("nip"),
+                    rs.getString("jk") != null ? rs.getString("jk") : "",
                     rs.getString("nama_guru"),
                     rs.getString("mapel")
                 });
@@ -134,12 +187,13 @@ public class Database {
         return list;
     }
     
-    public static boolean tambahGuru(String nip, String nama, String mapel) {
-        String query = "INSERT INTO tbl_guru (nip, nama_guru, mapel) VALUES (?, ?, ?)";
+    public static boolean tambahGuru(String nip, String jk, String nama, String mapel) {
+        String query = "INSERT INTO tbl_guru (nip, jk, nama_guru, mapel) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nip);
-            pstmt.setString(2, nama);
-            pstmt.setString(3, mapel);
+            pstmt.setString(2, jk);
+            pstmt.setString(3, nama);
+            pstmt.setString(4, mapel);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -147,13 +201,14 @@ public class Database {
         }
     }
     
-    public static boolean updateGuru(String nipLama, String nipBaru, String nama, String mapel) {
-        String query = "UPDATE tbl_guru SET nip = ?, nama_guru = ?, mapel = ? WHERE nip = ?";
+    public static boolean updateGuru(String nipLama, String nipBaru, String jk, String nama, String mapel) {
+        String query = "UPDATE tbl_guru SET nip = ?, jk = ?, nama_guru = ?, mapel = ? WHERE nip = ?";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nipBaru);
-            pstmt.setString(2, nama);
-            pstmt.setString(3, mapel);
-            pstmt.setString(4, nipLama);
+            pstmt.setString(2, jk);
+            pstmt.setString(3, nama);
+            pstmt.setString(4, mapel);
+            pstmt.setString(5, nipLama);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -232,13 +287,15 @@ public class Database {
     // ==================== NILAI ====================
     public static List<Object[]> getAllNilai() {
         List<Object[]> list = new ArrayList<>();
-        String query = "SELECT nisn, nama_siswa, tugas, uts, uas, nilai_akhir FROM tbl_nilai";
+        String query = "SELECT nisn, nama_siswa, mata_pelajaran, guru_pengajar, tugas, uts, uas, nilai_akhir FROM tbl_nilai";
         try (Statement stmt = KoneksiDB.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 list.add(new Object[]{
                     rs.getString("nisn"),
                     rs.getString("nama_siswa"),
+                    rs.getString("mata_pelajaran") != null ? rs.getString("mata_pelajaran") : "",
+                    rs.getString("guru_pengajar") != null ? rs.getString("guru_pengajar") : "",
                     rs.getDouble("tugas"),
                     rs.getDouble("uts"),
                     rs.getDouble("uas"),
@@ -251,31 +308,37 @@ public class Database {
         return list;
     }
     
-    public static boolean simpanNilai(String nisn, String nama, double tugas, double uts, double uas, double akhir) {
-        String cekQuery = "SELECT COUNT(*) FROM tbl_nilai WHERE nisn = ?";
+    public static boolean simpanNilai(String nisn, String nama, String mataPelajaran, String guruPengajar,
+                                      double tugas, double uts, double uas, double akhir) {
+        String cekQuery = "SELECT COUNT(*) FROM tbl_nilai WHERE nisn = ? AND mata_pelajaran = ?";
         try (PreparedStatement cekStmt = KoneksiDB.getConnection().prepareStatement(cekQuery)) {
             cekStmt.setString(1, nisn);
+            cekStmt.setString(2, mataPelajaran);
             ResultSet rs = cekStmt.executeQuery();
             rs.next();
             if (rs.getInt(1) > 0) {
-                String updateQuery = "UPDATE tbl_nilai SET tugas = ?, uts = ?, uas = ?, nilai_akhir = ? WHERE nisn = ?";
+                String updateQuery = "UPDATE tbl_nilai SET guru_pengajar = ?, tugas = ?, uts = ?, uas = ?, nilai_akhir = ? WHERE nisn = ? AND mata_pelajaran = ?";
                 try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(updateQuery)) {
-                    pstmt.setDouble(1, tugas);
-                    pstmt.setDouble(2, uts);
-                    pstmt.setDouble(3, uas);
-                    pstmt.setDouble(4, akhir);
-                    pstmt.setString(5, nisn);
+                    pstmt.setString(1, guruPengajar);
+                    pstmt.setDouble(2, tugas);
+                    pstmt.setDouble(3, uts);
+                    pstmt.setDouble(4, uas);
+                    pstmt.setDouble(5, akhir);
+                    pstmt.setString(6, nisn);
+                    pstmt.setString(7, mataPelajaran);
                     return pstmt.executeUpdate() > 0;
                 }
             } else {
-                String insertQuery = "INSERT INTO tbl_nilai (nisn, nama_siswa, tugas, uts, uas, nilai_akhir) VALUES (?, ?, ?, ?, ?, ?)";
+                String insertQuery = "INSERT INTO tbl_nilai (nisn, nama_siswa, mata_pelajaran, guru_pengajar, tugas, uts, uas, nilai_akhir) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(insertQuery)) {
                     pstmt.setString(1, nisn);
                     pstmt.setString(2, nama);
-                    pstmt.setDouble(3, tugas);
-                    pstmt.setDouble(4, uts);
-                    pstmt.setDouble(5, uas);
-                    pstmt.setDouble(6, akhir);
+                    pstmt.setString(3, mataPelajaran);
+                    pstmt.setString(4, guruPengajar);
+                    pstmt.setDouble(5, tugas);
+                    pstmt.setDouble(6, uts);
+                    pstmt.setDouble(7, uas);
+                    pstmt.setDouble(8, akhir);
                     return pstmt.executeUpdate() > 0;
                 }
             }
@@ -283,6 +346,23 @@ public class Database {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    public static List<String[]> getAllMataPelajaranFromGuru() {
+        List<String[]> list = new ArrayList<>();
+        String query = "SELECT nama_guru, mapel FROM tbl_guru ORDER BY mapel";
+        try (Statement stmt = KoneksiDB.getConnection().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                list.add(new String[]{
+                    rs.getString("nama_guru"),
+                    rs.getString("mapel")
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
     
     // ==================== ABSENSI ====================
@@ -307,17 +387,8 @@ public class Database {
     }
     
     public static boolean simpanAbsensi(String tanggal, String kelas, String nisn, String nama, String status) {
-        String deleteQuery = "DELETE FROM tbl_absensi WHERE tanggal = ? AND nisn = ?";
-        try (PreparedStatement deleteStmt = KoneksiDB.getConnection().prepareStatement(deleteQuery)) {
-            deleteStmt.setString(1, tanggal);
-            deleteStmt.setString(2, nisn);
-            deleteStmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        String insertQuery = "INSERT INTO tbl_absensi (tanggal, kelas, nisn, nama_siswa, status) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(insertQuery)) {
+        String query = "INSERT INTO tbl_absensi (tanggal, kelas, nisn, nama_siswa, status) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, tanggal);
             pstmt.setString(2, kelas);
             pstmt.setString(3, nisn);
@@ -328,6 +399,81 @@ public class Database {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    public static boolean hapusAbsensiByTanggalDanKelas(String tanggal, String kelas) {
+        String query = "DELETE FROM tbl_absensi WHERE tanggal = ? AND kelas = ?";
+        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
+            pstmt.setString(1, tanggal);
+            pstmt.setString(2, kelas);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // ==================== PEMBAYARAN SPP ====================
+    public static List<Object[]> getAllPembayaran() {
+        List<Object[]> list = new ArrayList<>();
+        String query = "SELECT id_pembayaran, nisn, nama_siswa, jenis_tagihan, bulan, total_tagihan, dibayar, sisa_tagihan, status, tgl_bayar FROM tbl_pembayaran ORDER BY tgl_bayar DESC";
+        try (Statement stmt = KoneksiDB.getConnection().createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                list.add(new Object[]{
+                    rs.getInt("id_pembayaran"),
+                    rs.getString("nisn"),
+                    rs.getString("nama_siswa"),
+                    rs.getString("jenis_tagihan"),
+                    rs.getString("bulan") != null ? rs.getString("bulan") : "",
+                    rs.getDouble("total_tagihan"),
+                    rs.getDouble("dibayar"),
+                    rs.getDouble("sisa_tagihan"),
+                    rs.getString("status"),
+                    rs.getDate("tgl_bayar") != null ? rs.getDate("tgl_bayar").toString() : ""
+                });
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    public static boolean simpanPembayaran(String nisn, String nama, String jenisTagihan, String bulan, 
+                                           double totalTagihan, double dibayar, double sisaTagihan, 
+                                           String status, String tglBayar, String catatan) {
+        String query = "INSERT INTO tbl_pembayaran (nisn, nama_siswa, jenis_tagihan, bulan, total_tagihan, dibayar, sisa_tagihan, status, tgl_bayar, catatan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
+            pstmt.setString(1, nisn);
+            pstmt.setString(2, nama);
+            pstmt.setString(3, jenisTagihan);
+            pstmt.setString(4, bulan);
+            pstmt.setDouble(5, totalTagihan);
+            pstmt.setDouble(6, dibayar);
+            pstmt.setDouble(7, sisaTagihan);
+            pstmt.setString(8, status);
+            pstmt.setString(9, tglBayar);
+            pstmt.setString(10, catatan);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public static double getTotalTunggakanSiswa(String nisn) {
+        double total = 0;
+        String query = "SELECT SUM(sisa_tagihan) as sisa FROM tbl_pembayaran WHERE nisn = ? AND status != 'Lunas'";
+        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
+            pstmt.setString(1, nisn);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                total = rs.getDouble("sisa");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return total;
     }
     
     // ==================== SPP ====================
@@ -387,10 +533,9 @@ public class Database {
         }
     }
     
-    // ==================== TOTAL SPP (DASHBOARD) ====================
     public static double getTotalSPP() {
         double total = 0;
-        String query = "SELECT SUM(nominal) as total FROM tbl_spp WHERE status = 'Lunas'";
+        String query = "SELECT SUM(dibayar) as total FROM tbl_pembayaran WHERE status = 'Lunas'";
         try (Statement stmt = KoneksiDB.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             if (rs.next()) {

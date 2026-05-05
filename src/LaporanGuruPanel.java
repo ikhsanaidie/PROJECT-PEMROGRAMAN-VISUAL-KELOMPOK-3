@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -23,51 +24,116 @@ public class LaporanGuruPanel extends JPanel {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBackground(new Color(240, 242, 245));
         
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // ============ PANEL JUDUL ============
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel titleLabel = new JLabel("LAPORAN DATA GURU");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(41, 128, 185));
+        titlePanel.add(titleLabel);
+        
+        add(titlePanel, BorderLayout.NORTH);
+        
+        // ============ PANEL TABEL ============
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Kolom tabel
+        String[] columns = {"No", "NIP", "Nama Guru", "Mata Pelajaran"};
+        
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(230, 230, 230));
+        
+        // Set lebar kolom agar rapi
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);   // No
+        table.getColumnModel().getColumn(1).setPreferredWidth(150);  // NIP
+        table.getColumnModel().getColumn(2).setPreferredWidth(250);  // Nama Guru
+        table.getColumnModel().getColumn(3).setPreferredWidth(200);  // Mata Pelajaran
+        
+        // Header tabel
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        header.setBackground(new Color(41, 128, 185));
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 35));
+        
+        // ScrollPane (bisa scroll horizontal & vertikal)
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        add(tablePanel, BorderLayout.CENTER);
+        
+        // ============ PANEL TOMBOL ============
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(Color.WHITE);
+        btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
         
-        refreshBtn = new JButton("REFRESH DATA");
-        refreshBtn.setBackground(new Color(52, 152, 219));
-        refreshBtn.setForeground(Color.WHITE);
-        
-        cetakBtn = new JButton("CETAK PDF");
-        cetakBtn.setBackground(new Color(46, 204, 113));
-        cetakBtn.setForeground(Color.WHITE);
-        
-        backBtn = new JButton("KEMBALI");
-        backBtn.setBackground(new Color(231, 76, 60));
-        backBtn.setForeground(Color.WHITE);
+        refreshBtn = createStyledButton("REFRESH DATA", new Color(52, 152, 219));
+        cetakBtn = createStyledButton("CETAK PDF", new Color(46, 204, 113));
+        backBtn = createStyledButton("KEMBALI", new Color(231, 76, 60));
         
         btnPanel.add(refreshBtn);
         btnPanel.add(cetakBtn);
         btnPanel.add(backBtn);
         
-        String[] columns = {"No", "NIP", "Nama Guru", "Mata Pelajaran"};
-        tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(41, 128, 185));
-        table.getTableHeader().setForeground(Color.WHITE);
+        add(btnPanel, BorderLayout.SOUTH);
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        
+        // ============ EVENT HANDLERS ============
         refreshBtn.addActionListener(e -> loadData());
         cetakBtn.addActionListener(e -> cetakPDF());
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
-        
-        add(scrollPane, BorderLayout.CENTER);
-        add(btnPanel, BorderLayout.SOUTH);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 25, 8, 25));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor);
+            }
+        });
+        return btn;
     }
     
     private void loadData() {
         tableModel.setRowCount(0);
         int no = 1;
         for (String[] guru : Database.getAllGuru()) {
-            tableModel.addRow(new Object[]{no++, guru[0], guru[1], guru[2]});
+            tableModel.addRow(new Object[]{
+                no++,                           // No
+                guru[0],                        // NIP
+                guru[1],                        // Nama Guru
+                guru[2]                         // Mata Pelajaran
+            });
         }
+        
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Belum ada data guru.");
         } else {
@@ -96,19 +162,21 @@ public class LaporanGuruPanel extends JPanel {
                 
                 com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 18, com.itextpdf.text.Font.BOLD);
                 com.itextpdf.text.Font subTitleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 14, com.itextpdf.text.Font.BOLD);
-                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
+                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 11, com.itextpdf.text.Font.NORMAL);
                 com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD);
                 
+                // Logo
                 try {
                     java.net.URL imgUrl = getClass().getResource("/images/smapgri4.png");
                     if (imgUrl != null) {
                         com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgUrl);
-                        logo.scaleToFit(70, 70);
+                        logo.scaleToFit(60, 60);
                         logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                         document.add(logo);
                     }
                 } catch (Exception e) {}
                 
+                // Kop Surat
                 com.itextpdf.text.Paragraph title = new com.itextpdf.text.Paragraph("SMA PGRI 4 JAKARTA", titleFont);
                 title.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(title);
@@ -123,6 +191,7 @@ public class LaporanGuruPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Garis
                 com.itextpdf.text.pdf.PdfPTable lineTable = new com.itextpdf.text.pdf.PdfPTable(1);
                 lineTable.setWidthPercentage(100);
                 com.itextpdf.text.pdf.PdfPCell lineCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(" "));
@@ -133,6 +202,7 @@ public class LaporanGuruPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Judul
                 com.itextpdf.text.Paragraph judul = new com.itextpdf.text.Paragraph("LAPORAN DATA GURU", headerFont);
                 judul.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(judul);
@@ -144,11 +214,13 @@ public class LaporanGuruPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Tabel dengan 4 kolom
                 com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(4);
                 pdfTable.setWidthPercentage(100);
-                pdfTable.setWidths(new float[]{0.5f, 1.5f, 2.5f, 2f});
+                pdfTable.setWidths(new float[]{0.5f, 1.8f, 2.5f, 2.0f});
                 
                 String[] headers = {"No", "NIP", "Nama Guru", "Mata Pelajaran"};
+                
                 for (String header : headers) {
                     com.itextpdf.text.pdf.PdfPCell headerCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header, headerFont));
                     headerCell.setBackgroundColor(new com.itextpdf.text.BaseColor(41, 128, 185));
@@ -169,6 +241,7 @@ public class LaporanGuruPanel extends JPanel {
                 document.add(pdfTable);
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
+                // Footer
                 com.itextpdf.text.Paragraph footer = new com.itextpdf.text.Paragraph("Dicetak dari Sistem Informasi Akademik SMA PGRI 4 Jakarta", normalFont);
                 footer.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(footer);
@@ -182,7 +255,7 @@ public class LaporanGuruPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "PDF berhasil disimpan!\nLokasi: " + filePath);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage() + "\n\nPastikan library iTextPDF sudah ditambahkan.");
         }
     }
 }

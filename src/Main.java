@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import com.formdev.flatlaf.FlatLightLaf;
 
 public class Main extends JFrame {
     private CardLayout cardLayout;
@@ -11,29 +12,29 @@ public class Main extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
-        // Set Look and Feel modern
         try {
-            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+            FlatLightLaf.setup();
+            UIManager.put("Button.arc", 10);
+            UIManager.put("Component.arc", 10);
+            UIManager.put("TextComponent.arc", 10);
             UIManager.put("Button.font", new Font("Segoe UI", Font.PLAIN, 13));
             UIManager.put("Label.font", new Font("Segoe UI", Font.PLAIN, 13));
             UIManager.put("Table.font", new Font("Segoe UI", Font.PLAIN, 12));
             UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 12));
             UIManager.put("TextField.font", new Font("Segoe UI", Font.PLAIN, 13));
             UIManager.put("ComboBox.font", new Font("Segoe UI", Font.PLAIN, 13));
+            UIManager.put("TabbedPane.font", new Font("Segoe UI", Font.PLAIN, 13));
+            UIManager.put("ToolTip.font", new Font("Segoe UI", Font.PLAIN, 12));
         } catch (Exception e) {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ex) {}
+            e.printStackTrace();
         }
         
-        // Test koneksi database
         if (!KoneksiDB.testConnection()) {
             JOptionPane.showMessageDialog(null, 
                 "Gagal koneksi ke database!\nPastikan MySQL sedang berjalan.", 
                 "Error Koneksi", JOptionPane.ERROR_MESSAGE);
         }
         
-        // Set icon frame
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/images/smapgri4.png"));
             setIconImage(icon.getImage());
@@ -41,7 +42,7 @@ public class Main extends JFrame {
         
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
-        mainPanel.setBackground(new Color(240, 242, 245));
+        mainPanel.setBackground(new Color(245, 245, 250));
         
         // Tambahkan panel
         mainPanel.add(new LoginPanel(cardLayout, mainPanel), "login");
@@ -52,10 +53,11 @@ public class Main extends JFrame {
         mainPanel.add(new InputNilaiPanel(cardLayout, mainPanel), "inputNilai");
         mainPanel.add(new AbsensiPanel(cardLayout, mainPanel), "absensi");
         mainPanel.add(new PembayaranSPPPanel(cardLayout, mainPanel), "pembayaranSPP");
-        mainPanel.add(new LaporanSiswaPanel(cardLayout, mainPanel), "laporanSiswa");
+        mainPanel.add(new LaporanSIswaPanel(cardLayout, mainPanel), "laporanSiswa");
         mainPanel.add(new LaporanGuruPanel(cardLayout, mainPanel), "laporanGuru");
         mainPanel.add(new LaporanNilaiPanel(cardLayout, mainPanel), "laporanNilai");
         mainPanel.add(new LaporanAbsensiPanel(cardLayout, mainPanel), "laporanAbsensi");
+        mainPanel.add(new ProfilSekolahPanel(cardLayout, mainPanel), "profilSekolah");
         
         add(mainPanel);
         cardLayout.show(mainPanel, "login");

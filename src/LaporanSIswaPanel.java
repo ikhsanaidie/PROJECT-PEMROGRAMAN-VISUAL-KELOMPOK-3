@@ -1,19 +1,20 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class LaporanSiswaPanel extends JPanel {
+public class LaporanSIswaPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private DefaultTableModel tableModel;
     private JTable table;
     private JButton refreshBtn, cetakBtn, backBtn;
     
-    public LaporanSiswaPanel(CardLayout cardLayout, JPanel mainPanel) {
+    public LaporanSIswaPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
         initComponents();
@@ -23,62 +24,144 @@ public class LaporanSiswaPanel extends JPanel {
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBackground(new Color(240, 242, 245));
         
-        // Panel Tombol
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // ============ PANEL JUDUL ============
+        JPanel titlePanel = new JPanel();
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel titleLabel = new JLabel("LAPORAN DATA SISWA");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(41, 128, 185));
+        titlePanel.add(titleLabel);
+        
+        add(titlePanel, BorderLayout.NORTH);
+        
+        // ============ PANEL TABEL ============
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBackground(Color.WHITE);
+        tablePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Kolom tabel
+        String[] columns = {
+            "No", "NISN", "NIS", "Nama", "JK", "Tempat Lahir", 
+            "Tgl Lahir", "Agama", "Alamat", "No HP", "Email", 
+            "Kelas", "Jurusan", "Thn Masuk", "Ayah", "Ibu"
+        };
+        
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(230, 230, 230));
+        
+        // Set lebar kolom agar rapi
+        table.getColumnModel().getColumn(0).setPreferredWidth(40);   // No
+        table.getColumnModel().getColumn(1).setPreferredWidth(90);   // NISN
+        table.getColumnModel().getColumn(2).setPreferredWidth(90);   // NIS
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);  // Nama
+        table.getColumnModel().getColumn(4).setPreferredWidth(70);   // JK
+        table.getColumnModel().getColumn(5).setPreferredWidth(100);  // Tempat Lahir
+        table.getColumnModel().getColumn(6).setPreferredWidth(90);   // Tgl Lahir
+        table.getColumnModel().getColumn(7).setPreferredWidth(80);   // Agama
+        table.getColumnModel().getColumn(8).setPreferredWidth(200);  // Alamat
+        table.getColumnModel().getColumn(9).setPreferredWidth(100);  // No HP
+        table.getColumnModel().getColumn(10).setPreferredWidth(130); // Email
+        table.getColumnModel().getColumn(11).setPreferredWidth(80);  // Kelas
+        table.getColumnModel().getColumn(12).setPreferredWidth(70);  // Jurusan
+        table.getColumnModel().getColumn(13).setPreferredWidth(80);  // Thn Masuk
+        table.getColumnModel().getColumn(14).setPreferredWidth(120); // Ayah
+        table.getColumnModel().getColumn(15).setPreferredWidth(120); // Ibu
+        
+        // Header tabel
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        header.setBackground(new Color(41, 128, 185));
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 35));
+        
+        // ScrollPane (bisa scroll horizontal & vertikal)
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        add(tablePanel, BorderLayout.CENTER);
+        
+        // ============ PANEL TOMBOL ============
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(Color.WHITE);
+        btnPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
         
-        refreshBtn = new JButton("REFRESH DATA");
-        refreshBtn.setBackground(new Color(52, 152, 219));
-        refreshBtn.setForeground(Color.WHITE);
-        refreshBtn.setFocusPainted(false);
-        refreshBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        cetakBtn = new JButton("CETAK PDF");
-        cetakBtn.setBackground(new Color(46, 204, 113));
-        cetakBtn.setForeground(Color.WHITE);
-        cetakBtn.setFocusPainted(false);
-        cetakBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        backBtn = new JButton("KEMBALI");
-        backBtn.setBackground(new Color(231, 76, 60));
-        backBtn.setForeground(Color.WHITE);
-        backBtn.setFocusPainted(false);
-        backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshBtn = createStyledButton("REFRESH DATA", new Color(52, 152, 219));
+        cetakBtn = createStyledButton("CETAK PDF", new Color(46, 204, 113));
+        backBtn = createStyledButton("KEMBALI", new Color(231, 76, 60));
         
         btnPanel.add(refreshBtn);
         btnPanel.add(cetakBtn);
         btnPanel.add(backBtn);
         
-        // Tabel
-        String[] columns = {"No", "NISN", "Nama", "Jenis Kelamin", "Agama", "Alamat", "Kelas"};
-        tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        table.setFont(new Font("Arial", Font.PLAIN, 11));
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
-        table.getTableHeader().setBackground(new Color(41, 128, 185));
-        table.getTableHeader().setForeground(Color.WHITE);
-        table.setRowHeight(25);
+        add(btnPanel, BorderLayout.SOUTH);
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
-        
-        // Event
+        // ============ EVENT HANDLERS ============
         refreshBtn.addActionListener(e -> loadData());
         cetakBtn.addActionListener(e -> cetakPDF());
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
-        
-        add(scrollPane, BorderLayout.CENTER);
-        add(btnPanel, BorderLayout.SOUTH);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 25, 8, 25));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor);
+            }
+        });
+        return btn;
     }
     
     private void loadData() {
         tableModel.setRowCount(0);
         int no = 1;
         for (String[] siswa : Database.getAllSiswa()) {
-            tableModel.addRow(new Object[]{no++, siswa[0], siswa[1], siswa[2], siswa[3], siswa[4], siswa[5]});
+            tableModel.addRow(new Object[]{
+                no++,                           // No
+                siswa[0],                       // NISN
+                siswa[1],                       // NIS
+                siswa[2],                       // Nama
+                siswa[3],                       // JK
+                siswa[4],                       // Tempat Lahir
+                siswa[5],                       // Tgl Lahir
+                siswa[6],                       // Agama
+                siswa[7],                       // Alamat
+                siswa[8],                       // No HP
+                siswa[9],                       // Email
+                siswa[10],                      // Kelas
+                siswa[11],                      // Jurusan
+                siswa[12],                      // Tahun Masuk
+                siswa[13],                      // Nama Ayah
+                siswa[14]                       // Nama Ibu
+            });
         }
+        
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Belum ada data siswa.");
         } else {
@@ -105,18 +188,17 @@ public class LaporanSiswaPanel extends JPanel {
                 com.itextpdf.text.pdf.PdfWriter.getInstance(document, new FileOutputStream(filePath));
                 document.open();
                 
-                // Font
                 com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 18, com.itextpdf.text.Font.BOLD);
                 com.itextpdf.text.Font subTitleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 14, com.itextpdf.text.Font.BOLD);
-                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
-                com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 11, com.itextpdf.text.Font.BOLD);
+                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 9, com.itextpdf.text.Font.NORMAL);
+                com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.BOLD);
                 
                 // Logo
                 try {
                     java.net.URL imgUrl = getClass().getResource("/images/smapgri4.png");
                     if (imgUrl != null) {
                         com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgUrl);
-                        logo.scaleToFit(70, 70);
+                        logo.scaleToFit(60, 60);
                         logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                         document.add(logo);
                     }
@@ -160,25 +242,32 @@ public class LaporanSiswaPanel extends JPanel {
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
-                // Tabel
-                com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(7);
+                // Tabel dengan 16 kolom
+                com.itextpdf.text.pdf.PdfPTable pdfTable = new com.itextpdf.text.pdf.PdfPTable(16);
                 pdfTable.setWidthPercentage(100);
-                pdfTable.setWidths(new float[]{0.5f, 1.2f, 1.8f, 1.2f, 1f, 2f, 1.2f});
+                pdfTable.setWidths(new float[]{
+                    0.3f, 0.8f, 0.8f, 1.2f, 0.5f, 0.8f, 0.7f, 0.6f, 
+                    1.5f, 0.7f, 1.0f, 0.7f, 0.6f, 0.6f, 0.9f, 0.9f
+                });
                 
-                String[] headers = {"No", "NISN", "Nama", "JK", "Agama", "Alamat", "Kelas"};
+                String[] headers = {
+                    "No", "NISN", "NIS", "Nama", "JK", "Tempat Lahir", "Tgl Lahir", "Agama",
+                    "Alamat", "No HP", "Email", "Kelas", "Jurusan", "Thn Masuk", "Ayah", "Ibu"
+                };
+                
                 for (String header : headers) {
                     com.itextpdf.text.pdf.PdfPCell headerCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header, headerFont));
                     headerCell.setBackgroundColor(new com.itextpdf.text.BaseColor(41, 128, 185));
                     headerCell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                    headerCell.setPadding(8);
+                    headerCell.setPadding(6);
                     pdfTable.addCell(headerCell);
                 }
                 
                 for (int i = 0; i < tableModel.getRowCount(); i++) {
-                    for (int j = 0; j < 7; j++) {
+                    for (int j = 0; j < 16; j++) {
                         String value = tableModel.getValueAt(i, j) != null ? tableModel.getValueAt(i, j).toString() : "";
                         com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(value, normalFont));
-                        cell.setPadding(6);
+                        cell.setPadding(5);
                         pdfTable.addCell(cell);
                     }
                 }

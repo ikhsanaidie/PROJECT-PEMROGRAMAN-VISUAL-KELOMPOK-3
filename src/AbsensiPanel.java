@@ -1,17 +1,20 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import javax.swing.table.TableColumn;
+import javax.swing.table.JTableHeader;
+import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class AbsensiPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private JComboBox<String> kelasCombo;
-    private JTextField tanggalField;
     private DefaultTableModel tableModel;
     private JTable table;
+    private JComboBox<String> kelasCombo;
+    private JTextField tanggalField;
+    private JButton simpanBtn, refreshBtn, backBtn, tampilBtn;
     
     public AbsensiPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
@@ -22,73 +25,135 @@ public class AbsensiPanel extends JPanel {
     
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBackground(new Color(240, 242, 245));
         
-        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        // ============ PANEL FILTER (ATAS) ============
+        JPanel filterPanel = new JPanel();
+        filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
         filterPanel.setBackground(Color.WHITE);
+        filterPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
         
+        JLabel filterTitle = new JLabel("📋 FORM ABSENSI SISWA");
+        filterTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        filterTitle.setForeground(new Color(41, 128, 185));
+        filterTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        filterPanel.add(filterTitle);
+        filterPanel.add(Box.createVerticalStrut(15));
+        
+        JPanel filterInputPanel = new JPanel(new GridBagLayout());
+        filterInputPanel.setBackground(Color.WHITE);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.1;
+        filterInputPanel.add(new JLabel("Kelas:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 0.4;
         kelasCombo = new JComboBox<>();
-        kelasCombo.setPreferredSize(new Dimension(150, 30));
+        kelasCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        filterInputPanel.add(kelasCombo, gbc);
         
+        gbc.gridx = 2; gbc.weightx = 0.1;
+        filterInputPanel.add(new JLabel("Tanggal:"), gbc);
+        gbc.gridx = 3; gbc.weightx = 0.4;
         tanggalField = new JTextField(15);
         tanggalField.setText(getCurrentDate());
+        tanggalField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        filterInputPanel.add(tanggalField, gbc);
         
-        JButton filterBtn = new JButton("TAMPILKAN SISWA");
-        filterBtn.setBackground(new Color(52, 152, 219));
-        filterBtn.setForeground(Color.WHITE);
+        gbc.gridx = 4; gbc.weightx = 0.2;
+        tampilBtn = new JButton("📋 TAMPILKAN SISWA");
+        tampilBtn.setBackground(new Color(52, 152, 219));
+        tampilBtn.setForeground(Color.WHITE);
+        tampilBtn.setFocusPainted(false);
+        tampilBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tampilBtn.addActionListener(e -> loadSiswaByKelas());
+        filterInputPanel.add(tampilBtn, gbc);
         
-        filterPanel.add(new JLabel("Kelas:"));
-        filterPanel.add(kelasCombo);
-        filterPanel.add(new JLabel("Tanggal (YYYY-MM-DD):"));
-        filterPanel.add(tanggalField);
-        filterPanel.add(filterBtn);
+        filterPanel.add(filterInputPanel);
+        filterPanel.add(Box.createVerticalStrut(10));
         
-        String[] columns = {"No", "NISN", "Nama Siswa", "Status"};
-        tableModel = new DefaultTableModel(columns, 0);
-        table = new JTable(tableModel);
-        table.setRowHeight(35);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(41, 128, 185));
-        table.getTableHeader().setForeground(Color.WHITE);
-        
-        TableColumn statusColumn = table.getColumnModel().getColumn(3);
-        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Hadir", "Sakit", "Izin", "Alpa"});
-        statusColumn.setCellEditor(new DefaultCellEditor(statusCombo));
-        
-        JScrollPane scrollPane = new JScrollPane(table);
-        
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // ============ BUTTON PANEL ============
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
         btnPanel.setBackground(Color.WHITE);
+        btnPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        JButton simpanBtn = new JButton("SIMPAN ABSENSI");
+        simpanBtn = new JButton("💾 SIMPAN ABSENSI");
         simpanBtn.setBackground(new Color(46, 204, 113));
         simpanBtn.setForeground(Color.WHITE);
+        simpanBtn.setFocusPainted(false);
+        simpanBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         
-        JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn = new JButton("🔄 REFRESH");
         refreshBtn.setBackground(new Color(52, 152, 219));
         refreshBtn.setForeground(Color.WHITE);
+        refreshBtn.setFocusPainted(false);
+        refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         
-        JButton backBtn = new JButton("KEMBALI");
-        backBtn.setBackground(new Color(231, 76, 60));
+        backBtn = new JButton("◀ KEMBALI");
+        backBtn.setBackground(new Color(52, 73, 94));
         backBtn.setForeground(Color.WHITE);
+        backBtn.setFocusPainted(false);
+        backBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         
         btnPanel.add(simpanBtn);
         btnPanel.add(refreshBtn);
         btnPanel.add(backBtn);
         
-        filterBtn.addActionListener(e -> loadSiswaByKelas());
+        filterPanel.add(btnPanel);
+        
+        add(filterPanel, BorderLayout.NORTH);
+        
+        // ============ TABEL PANEL (BAWAH) ============
+        JPanel tableContainer = new JPanel(new BorderLayout());
+        tableContainer.setBackground(Color.WHITE);
+        tableContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel tableTitle = new JLabel("📊 DAFTAR SISWA");
+        tableTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tableTitle.setForeground(new Color(41, 128, 185));
+        tableContainer.add(tableTitle, BorderLayout.NORTH);
+        
+        String[] columns = {"No", "NISN", "Nama Siswa", "Kelas", "Status"};
+        tableModel = new DefaultTableModel(columns, 0);
+        table = new JTable(tableModel);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        table.setRowHeight(35);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(230, 230, 230));
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        
+        TableColumn statusColumn = table.getColumnModel().getColumn(4);
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Hadir", "Sakit", "Izin", "Alpa", "Tidak Hadir"});
+        statusColumn.setCellEditor(new DefaultCellEditor(statusCombo));
+        
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        header.setBackground(new Color(41, 128, 185));
+        header.setForeground(Color.WHITE);
+        header.setPreferredSize(new Dimension(0, 35));
+        
+        JScrollPane tableScrollPane = new JScrollPane(table);
+        tableScrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200)));
+        tableContainer.add(tableScrollPane, BorderLayout.CENTER);
+        
+        add(tableContainer, BorderLayout.CENTER);
+        
+        // ============ EVENT HANDLERS ============
         simpanBtn.addActionListener(e -> simpanAbsensi());
         refreshBtn.addActionListener(e -> {
             loadKelas();
             loadSiswaByKelas();
         });
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
-        
-        add(filterPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
-        add(btnPanel, BorderLayout.SOUTH);
     }
     
     private String getCurrentDate() {
@@ -98,30 +163,55 @@ public class AbsensiPanel extends JPanel {
     
     private void loadKelas() {
         kelasCombo.removeAllItems();
-        for (String[] kelas : Database.getAllKelas()) {
-            kelasCombo.addItem(kelas[1]);
+        List<String[]> kelasList = Database.getAllKelas();
+        if (kelasList.isEmpty()) {
+            kelasCombo.addItem("-- Belum ada data kelas --");
+        } else {
+            for (String[] kelas : kelasList) {
+                kelasCombo.addItem(kelas[1]);
+            }
         }
     }
     
     private void loadSiswaByKelas() {
-        if (kelasCombo.getSelectedIndex() == -1) return;
+        if (kelasCombo.getSelectedIndex() == -1 || kelasCombo.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Pilih kelas terlebih dahulu!");
+            return;
+        }
         
         String selectedKelas = (String) kelasCombo.getSelectedItem();
-        tableModel.setRowCount(0);
+        if (selectedKelas.equals("-- Belum ada data kelas --")) {
+            JOptionPane.showMessageDialog(this, "Silakan input data kelas terlebih dahulu!");
+            return;
+        }
         
+        String tanggal = tanggalField.getText().trim();
+        
+        tableModel.setRowCount(0);
         int no = 1;
-        for (String[] siswa : Database.getSiswaByKelas(selectedKelas)) {
+        
+        List<String[]> siswaList = Database.getSiswaByKelas(selectedKelas);
+        if (siswaList.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Tidak ada siswa di kelas " + selectedKelas);
+            return;
+        }
+        
+        for (String[] siswa : siswaList) {
+            String nisn = siswa[0];
+            String nama = siswa[2];
+            String kelas = siswa[10];
+            
             String status = "Hadir";
-            String tanggal = tanggalField.getText().trim();
             
             for (Object[] absen : Database.getAllAbsensi()) {
-                if (absen[0].toString().equals(tanggal) && absen[2].toString().equals(siswa[0])) {
+                if (absen[0].toString().equals(tanggal) && 
+                    absen[2].toString().equals(nisn)) {
                     status = absen[4].toString();
                     break;
                 }
             }
             
-            tableModel.addRow(new Object[]{no++, siswa[0], siswa[1], status});
+            tableModel.addRow(new Object[]{no++, nisn, nama, kelas, status});
         }
         
         if (tableModel.getRowCount() == 0) {
@@ -134,25 +224,37 @@ public class AbsensiPanel extends JPanel {
         String kelas = (String) kelasCombo.getSelectedItem();
         
         if (tanggal.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Masukkan tanggal!");
+            JOptionPane.showMessageDialog(this, "Masukkan tanggal absensi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        boolean allSuccess = true;
+        if (kelas == null || kelas.equals("-- Belum ada data kelas --")) {
+            JOptionPane.showMessageDialog(this, "Pilih kelas terlebih dahulu!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Tidak ada data siswa! Klik TAMPILKAN SISWA terlebih dahulu.", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        Database.hapusAbsensiByTanggalDanKelas(tanggal, kelas);
+        
+        int saved = 0;
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             String nisn = tableModel.getValueAt(i, 1).toString();
             String nama = tableModel.getValueAt(i, 2).toString();
-            String status = tableModel.getValueAt(i, 3).toString();
+            String status = tableModel.getValueAt(i, 4).toString();
             
-            if (!Database.simpanAbsensi(tanggal, kelas, nisn, nama, status)) {
-                allSuccess = false;
+            if (status.isEmpty()) {
+                status = "Tidak Hadir";
+            }
+            
+            if (Database.simpanAbsensi(tanggal, kelas, nisn, nama, status)) {
+                saved++;
             }
         }
         
-        if (allSuccess) {
-            JOptionPane.showMessageDialog(this, "Absensi tanggal " + tanggal + " untuk kelas " + kelas + " berhasil disimpan!");
-        } else {
-            JOptionPane.showMessageDialog(this, "Beberapa data absensi gagal disimpan!");
-        }
+        JOptionPane.showMessageDialog(this, "✅ Absensi tanggal " + tanggal + " untuk kelas " + kelas + " berhasil disimpan!\nTotal " + saved + " siswa.");
     }
 }

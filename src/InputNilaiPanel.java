@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -8,101 +9,140 @@ import java.util.List;
 public class InputNilaiPanel extends JPanel {
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private JTextField nisnField, namaField, tugasField, utsField, uasField, akhirField;
+    private JTextField nisnField, namaField, kelasField, tugasField, utsField, uasField, akhirField;
+    private JComboBox<String> mapelCombo;
     private JButton cariBtn, hitungBtn, simpanBtn, resetBtn, refreshBtn, backBtn;
     private DefaultTableModel tableModel;
     private JTable table;
     private String currentNISN = "";
+    private String currentGuruPengajar = "";
     
     public InputNilaiPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
         initComponents();
         loadDataNilai();
+        loadMataPelajaranFromGuru();
     }
     
     private void initComponents() {
         setLayout(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        setBackground(Color.WHITE);
+        setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setBackground(new Color(240, 242, 245));
         
-        JPanel inputPanel = new JPanel(new GridBagLayout());
+        // ============ PANEL INPUT ============
+        JPanel inputPanel = new JPanel(new BorderLayout());
         inputPanel.setBackground(Color.WHITE);
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Form Input Nilai"));
+        inputPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel inputTitle = new JLabel("FORM INPUT NILAI");
+        inputTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        inputTitle.setForeground(new Color(41, 128, 185));
+        inputPanel.add(inputTitle, BorderLayout.NORTH);
+        
+        JPanel gridPanel = new JPanel(new GridBagLayout());
+        gridPanel.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(8, 12, 8, 12);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         
-        gbc.gridx = 0; gbc.gridy = 0;
-        inputPanel.add(new JLabel("NISN:"), gbc);
-        gbc.gridx = 1;
-        nisnField = new JTextField(15);
-        inputPanel.add(nisnField, gbc);
-        
-        gbc.gridx = 2;
+        // Baris 1 - NISN & CARI
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.15;
+        gridPanel.add(new JLabel("NISN:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 0.3;
+        nisnField = new JTextField();
+        nisnField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(nisnField, gbc);
+        gbc.gridx = 2; gbc.weightx = 0.2;
         cariBtn = new JButton("CARI SISWA");
         cariBtn.setBackground(new Color(52, 152, 219));
         cariBtn.setForeground(Color.WHITE);
-        inputPanel.add(cariBtn, gbc);
+        cariBtn.setFocusPainted(false);
+        gridPanel.add(cariBtn, gbc);
         
+        // Baris 2 - Nama Siswa
         gbc.gridx = 0; gbc.gridy = 1;
-        inputPanel.add(new JLabel("Nama Siswa:"), gbc);
+        gridPanel.add(new JLabel("Nama Siswa:"), gbc);
         gbc.gridx = 1; gbc.gridwidth = 2;
-        namaField = new JTextField(20);
+        namaField = new JTextField();
         namaField.setEditable(false);
         namaField.setBackground(new Color(240, 240, 240));
-        inputPanel.add(namaField, gbc);
+        namaField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(namaField, gbc);
         gbc.gridwidth = 1;
         
+        // Baris 3 - Kelas (otomatis dari database)
         gbc.gridx = 0; gbc.gridy = 2;
-        inputPanel.add(new JLabel("Nilai Tugas (20%):"), gbc);
-        gbc.gridx = 1;
-        tugasField = new JTextField(10);
-        inputPanel.add(tugasField, gbc);
+        gridPanel.add(new JLabel("Kelas:"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 2;
+        kelasField = new JTextField();
+        kelasField.setEditable(false);
+        kelasField.setBackground(new Color(240, 240, 240));
+        kelasField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(kelasField, gbc);
+        gbc.gridwidth = 1;
         
+        // Baris 4 - Mata Pelajaran
         gbc.gridx = 0; gbc.gridy = 3;
-        inputPanel.add(new JLabel("Nilai UTS (30%):"), gbc);
-        gbc.gridx = 1;
-        utsField = new JTextField(10);
-        inputPanel.add(utsField, gbc);
+        gridPanel.add(new JLabel("Mata Pelajaran:"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 2;
+        mapelCombo = new JComboBox<>();
+        mapelCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        mapelCombo.addActionListener(e -> {
+            if (mapelCombo.getSelectedIndex() != -1 && mapelCombo.getItemCount() > 0) {
+                String selected = (String) mapelCombo.getSelectedItem();
+                if (selected != null && selected.contains(" - ")) {
+                    currentGuruPengajar = selected.split(" - ")[0];
+                }
+            }
+        });
+        gridPanel.add(mapelCombo, gbc);
+        gbc.gridwidth = 1;
         
+        // Baris 5 - Tugas & UTS
         gbc.gridx = 0; gbc.gridy = 4;
-        inputPanel.add(new JLabel("Nilai UAS (50%):"), gbc);
+        gridPanel.add(new JLabel("Nilai Tugas (20%):"), gbc);
         gbc.gridx = 1;
-        uasField = new JTextField(10);
-        inputPanel.add(uasField, gbc);
+        tugasField = new JTextField();
+        tugasField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(tugasField, gbc);
+        gbc.gridx = 2;
+        gridPanel.add(new JLabel("Nilai UTS (30%):"), gbc);
+        gbc.gridx = 3;
+        utsField = new JTextField();
+        utsField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(utsField, gbc);
         
+        // Baris 6 - UAS & Nilai Akhir
         gbc.gridx = 0; gbc.gridy = 5;
-        inputPanel.add(new JLabel("Nilai Akhir:"), gbc);
+        gridPanel.add(new JLabel("Nilai UAS (50%):"), gbc);
         gbc.gridx = 1;
-        akhirField = new JTextField(10);
+        uasField = new JTextField();
+        uasField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        gridPanel.add(uasField, gbc);
+        gbc.gridx = 2;
+        gridPanel.add(new JLabel("Nilai Akhir:"), gbc);
+        gbc.gridx = 3;
+        akhirField = new JTextField();
         akhirField.setEditable(false);
         akhirField.setBackground(new Color(240, 240, 240));
-        inputPanel.add(akhirField, gbc);
+        akhirField.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        gridPanel.add(akhirField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 3;
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        // Baris 7 - Tombol
+        gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 4;
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(Color.WHITE);
         
-        hitungBtn = new JButton("HITUNG NILAI");
-        hitungBtn.setBackground(new Color(52, 152, 219));
-        hitungBtn.setForeground(Color.WHITE);
-        
-        simpanBtn = new JButton("SIMPAN NILAI");
-        simpanBtn.setBackground(new Color(46, 204, 113));
-        simpanBtn.setForeground(Color.WHITE);
-        
-        resetBtn = new JButton("RESET");
-        resetBtn.setBackground(new Color(231, 76, 60));
-        resetBtn.setForeground(Color.WHITE);
-        
-        refreshBtn = new JButton("REFRESH");
-        refreshBtn.setBackground(new Color(52, 152, 219));
-        refreshBtn.setForeground(Color.WHITE);
-        
-        backBtn = new JButton("KEMBALI");
-        backBtn.setBackground(new Color(52, 73, 94));
-        backBtn.setForeground(Color.WHITE);
+        hitungBtn = createStyledButton("HITUNG NILAI", new Color(52, 152, 219));
+        simpanBtn = createStyledButton("SIMPAN NILAI", new Color(46, 204, 113));
+        resetBtn = createStyledButton("RESET", new Color(231, 76, 60));
+        refreshBtn = createStyledButton("REFRESH", new Color(52, 152, 219));
+        backBtn = createStyledButton("KEMBALI", new Color(52, 73, 94));
         
         btnPanel.add(hitungBtn);
         btnPanel.add(simpanBtn);
@@ -110,33 +150,69 @@ public class InputNilaiPanel extends JPanel {
         btnPanel.add(refreshBtn);
         btnPanel.add(backBtn);
         
-        inputPanel.add(btnPanel, gbc);
+        gridPanel.add(btnPanel, gbc);
         
-        String[] columns = {"NISN", "Nama Siswa", "Tugas", "UTS", "UAS", "Nilai Akhir"};
+        inputPanel.add(gridPanel, BorderLayout.CENTER);
+        
+        add(inputPanel, BorderLayout.NORTH);
+        
+        // ============ TABEL RIWAYAT NILAI ============
+        JPanel tableContainer = new JPanel(new BorderLayout());
+        tableContainer.setBackground(Color.WHITE);
+        tableContainer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        
+        JLabel tableTitle = new JLabel("RIWAYAT NILAI SISWA");
+        tableTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tableTitle.setForeground(new Color(41, 128, 185));
+        tableContainer.add(tableTitle, BorderLayout.NORTH);
+        
+        String[] columns = {"NISN", "Nama Siswa", "Kelas", "Mata Pelajaran", "Guru", "Tugas", "UTS", "UAS", "Nilai Akhir"};
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(41, 128, 185));
-        table.getTableHeader().setForeground(Color.WHITE);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        table.setRowHeight(30);
+        table.setShowGrid(true);
+        table.setGridColor(new Color(230, 230, 230));
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        // Set lebar kolom
+        table.getColumnModel().getColumn(0).setPreferredWidth(80);
+        table.getColumnModel().getColumn(1).setPreferredWidth(150);
+        table.getColumnModel().getColumn(2).setPreferredWidth(80);
+        table.getColumnModel().getColumn(3).setPreferredWidth(120);
+        table.getColumnModel().getColumn(4).setPreferredWidth(120);
+        table.getColumnModel().getColumn(5).setPreferredWidth(60);
+        table.getColumnModel().getColumn(6).setPreferredWidth(60);
+        table.getColumnModel().getColumn(7).setPreferredWidth(60);
+        table.getColumnModel().getColumn(8).setPreferredWidth(80);
+        
+        JTableHeader header = table.getTableHeader();
+        header.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        header.setBackground(new Color(41, 128, 185));
+        header.setForeground(Color.WHITE);
         
         JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createTitledBorder("Riwayat Nilai Siswa"));
+        tableContainer.add(scrollPane, BorderLayout.CENTER);
         
-        cariBtn.addActionListener(e -> cariSiswa());
+        add(tableContainer, BorderLayout.CENTER);
+        
+        // ============ EVENT HANDLERS ============
         nisnField.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    cariSiswa();
-                }
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) cariSiswa();
             }
         });
         
+        cariBtn.addActionListener(e -> cariSiswa());
         hitungBtn.addActionListener(e -> hitungNilai());
         simpanBtn.addActionListener(e -> simpanNilai());
         resetBtn.addActionListener(e -> resetForm());
         refreshBtn.addActionListener(e -> {
             loadDataNilai();
+            loadMataPelajaranFromGuru();
             resetForm();
         });
         backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
@@ -147,17 +223,52 @@ public class InputNilaiPanel extends JPanel {
                 if (row != -1) {
                     nisnField.setText(tableModel.getValueAt(row, 0).toString());
                     namaField.setText(tableModel.getValueAt(row, 1).toString());
-                    tugasField.setText(tableModel.getValueAt(row, 2).toString());
-                    utsField.setText(tableModel.getValueAt(row, 3).toString());
-                    uasField.setText(tableModel.getValueAt(row, 4).toString());
-                    akhirField.setText(tableModel.getValueAt(row, 5).toString());
+                    kelasField.setText(tableModel.getValueAt(row, 2).toString());
+                    String mapel = tableModel.getValueAt(row, 3).toString();
+                    String guru = tableModel.getValueAt(row, 4).toString();
+                    if (!mapel.isEmpty() && !guru.isEmpty()) {
+                        mapelCombo.setSelectedItem(guru + " - " + mapel);
+                    }
+                    tugasField.setText(tableModel.getValueAt(row, 5).toString());
+                    utsField.setText(tableModel.getValueAt(row, 6).toString());
+                    uasField.setText(tableModel.getValueAt(row, 7).toString());
+                    akhirField.setText(tableModel.getValueAt(row, 8).toString());
                     currentNISN = tableModel.getValueAt(row, 0).toString();
+                    currentGuruPengajar = guru;
                 }
             }
         });
-        
-        add(inputPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor.darker());
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(bgColor);
+            }
+        });
+        return btn;
+    }
+    
+    private void loadMataPelajaranFromGuru() {
+        mapelCombo.removeAllItems();
+        List<String[]> guruList = Database.getAllMataPelajaranFromGuru();
+        if (guruList.isEmpty()) {
+            mapelCombo.addItem("Belum ada data guru - Silakan input guru dulu");
+        } else {
+            for (String[] guru : guruList) {
+                mapelCombo.addItem(guru[0] + " - " + guru[1]);
+            }
+        }
     }
     
     private void cariSiswa() {
@@ -169,29 +280,36 @@ public class InputNilaiPanel extends JPanel {
         
         String[] siswa = Database.getSiswaByNISN(nisn);
         if (siswa != null) {
-            namaField.setText(siswa[1]);
+            namaField.setText(siswa[2]); // Nama siswa
+            kelasField.setText(siswa[10]); // Kelas siswa (index 10)
             currentNISN = nisn;
             
+            // Cek apakah sudah ada nilai untuk siswa ini
             List<Object[]> nilaiList = Database.getAllNilai();
+            boolean found = false;
             for (Object[] nilai : nilaiList) {
                 if (nilai[0].toString().equals(nisn)) {
-                    tugasField.setText(nilai[2].toString());
-                    utsField.setText(nilai[3].toString());
-                    uasField.setText(nilai[4].toString());
-                    akhirField.setText(nilai[5].toString());
-                    JOptionPane.showMessageDialog(this, "Data nilai sudah ada, silakan edit jika perlu.");
-                    return;
+                    tugasField.setText(nilai[4].toString());
+                    utsField.setText(nilai[5].toString());
+                    uasField.setText(nilai[6].toString());
+                    akhirField.setText(nilai[7].toString());
+                    found = true;
+                    break;
                 }
             }
             
-            tugasField.setText("");
-            utsField.setText("");
-            uasField.setText("");
-            akhirField.setText("");
-            JOptionPane.showMessageDialog(this, "Siswa ditemukan: " + siswa[1]);
+            if (!found) {
+                tugasField.setText("");
+                utsField.setText("");
+                uasField.setText("");
+                akhirField.setText("");
+            }
+            
+            JOptionPane.showMessageDialog(this, "Siswa ditemukan: " + siswa[2] + " | Kelas: " + siswa[10]);
         } else {
             JOptionPane.showMessageDialog(this, "Siswa dengan NISN " + nisn + " tidak ditemukan!");
             namaField.setText("");
+            kelasField.setText("");
             currentNISN = "";
         }
     }
@@ -225,6 +343,17 @@ public class InputNilaiPanel extends JPanel {
             return;
         }
         
+        if (mapelCombo.getSelectedIndex() == -1 || mapelCombo.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Pilih Mata Pelajaran terlebih dahulu!\nPastikan data guru sudah diinput.");
+            return;
+        }
+        
+        String selectedMapel = (String) mapelCombo.getSelectedItem();
+        if (selectedMapel.equals("Belum ada data guru - Silakan input guru dulu")) {
+            JOptionPane.showMessageDialog(this, "Silakan input data GURU terlebih dahulu di menu Master Data!");
+            return;
+        }
+        
         if (tugasField.getText().isEmpty() || utsField.getText().isEmpty() || uasField.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Masukkan semua nilai (Tugas, UTS, UAS)!");
             return;
@@ -237,14 +366,16 @@ public class InputNilaiPanel extends JPanel {
         
         String nisn = currentNISN;
         String nama = namaField.getText();
+        String mataPelajaran = selectedMapel.split(" - ")[1];
+        String guruPengajar = selectedMapel.split(" - ")[0];
         double tugas = Double.parseDouble(tugasField.getText());
         double uts = Double.parseDouble(utsField.getText());
         double uas = Double.parseDouble(uasField.getText());
         double akhir = Double.parseDouble(akhirField.getText());
         
-        if (Database.simpanNilai(nisn, nama, tugas, uts, uas, akhir)) {
+        if (Database.simpanNilai(nisn, nama, mataPelajaran, guruPengajar, tugas, uts, uas, akhir)) {
             loadDataNilai();
-            JOptionPane.showMessageDialog(this, "Nilai berhasil disimpan untuk " + nama);
+            JOptionPane.showMessageDialog(this, "Nilai berhasil disimpan untuk " + nama + "\nMata Pelajaran: " + mataPelajaran + "\nGuru: " + guruPengajar);
             resetForm();
         } else {
             JOptionPane.showMessageDialog(this, "Gagal menyimpan nilai!");
@@ -254,18 +385,39 @@ public class InputNilaiPanel extends JPanel {
     private void resetForm() {
         nisnField.setText("");
         namaField.setText("");
+        kelasField.setText("");
         tugasField.setText("");
         utsField.setText("");
         uasField.setText("");
         akhirField.setText("");
         currentNISN = "";
+        currentGuruPengajar = "";
         nisnField.requestFocus();
+        if (mapelCombo.getItemCount() > 0) {
+            mapelCombo.setSelectedIndex(0);
+        }
     }
     
     private void loadDataNilai() {
         tableModel.setRowCount(0);
         for (Object[] nilai : Database.getAllNilai()) {
-            tableModel.addRow(nilai);
+            String nisn = nilai[0].toString();
+            String nama = nilai[1].toString();
+            String mapel = nilai[2].toString();
+            String guru = nilai[3].toString();
+            double tugas = (double) nilai[4];
+            double uts = (double) nilai[5];
+            double uas = (double) nilai[6];
+            double akhir = (double) nilai[7];
+            
+            // Cari kelas siswa
+            String kelas = "-";
+            String[] siswa = Database.getSiswaByNISN(nisn);
+            if (siswa != null) {
+                kelas = siswa[10];
+            }
+            
+            tableModel.addRow(new Object[]{nisn, nama, kelas, mapel, guru, tugas, uts, uas, akhir});
         }
     }
 }
