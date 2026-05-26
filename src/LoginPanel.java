@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class LoginPanel extends JPanel {
     private CardLayout cardLayout;
@@ -7,6 +8,7 @@ public class LoginPanel extends JPanel {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JComboBox<String> roleCombo;
+    private JLabel quoteLabel;
     private String[] quotes = {
         "Pendidikan adalah senjata paling ampuh untuk mengubah dunia.",
         "Belajar tanpa berpikir tidak ada gunanya, berpikir tanpa belajar itu berbahaya.",
@@ -17,7 +19,6 @@ public class LoginPanel extends JPanel {
         "Tuntutlah ilmu dari buaian hingga liang lahat.",
         "Sebaik-baik manusia adalah yang paling bermanfaat bagi orang lain."
     };
-    private JLabel quoteLabel;
     private int quoteIndex = 0;
     private Timer quoteTimer;
     
@@ -76,9 +77,19 @@ public class LoginPanel extends JPanel {
         gbc.gridy = 3;
         leftPanel.add(separator, gbc);
         
-        // Username
+        // Role
         gbc.gridwidth = 1;
         gbc.gridy = 4;
+        gbc.gridx = 0;
+        leftPanel.add(new JLabel("Login Sebagai"), gbc);
+        
+        gbc.gridx = 1;
+        roleCombo = new JComboBox<>(new String[]{"Administrator", "Guru", "Kepala Sekolah"});
+        roleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        leftPanel.add(roleCombo, gbc);
+        
+        // Username / NIP
+        gbc.gridy = 5;
         gbc.gridx = 0;
         leftPanel.add(new JLabel("Username"), gbc);
         
@@ -88,24 +99,21 @@ public class LoginPanel extends JPanel {
         leftPanel.add(usernameField, gbc);
         
         // Password
-        gbc.gridy = 5;
+        gbc.gridy = 6;
         gbc.gridx = 0;
         leftPanel.add(new JLabel("Password"), gbc);
         
         gbc.gridx = 1;
         passwordField = new JPasswordField(20);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passwordField.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    doLogin();
+                }
+            }
+        });
         leftPanel.add(passwordField, gbc);
-        
-        // Role
-        gbc.gridy = 6;
-        gbc.gridx = 0;
-        leftPanel.add(new JLabel("Hak Akses"), gbc);
-        
-        gbc.gridx = 1;
-        roleCombo = new JComboBox<>(new String[]{"Admin TU", "Guru"});
-        roleCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        leftPanel.add(roleCombo, gbc);
         
         // Login Button
         gbc.gridy = 7;
@@ -117,23 +125,15 @@ public class LoginPanel extends JPanel {
         loginBtn.setForeground(Color.WHITE);
         loginBtn.setFocusPainted(false);
         loginBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginBtn.addActionListener(e -> doLogin());
         leftPanel.add(loginBtn, gbc);
         
         // Info
         gbc.gridy = 8;
-        JLabel infoLabel = new JLabel("Username: admin / guru  |  Password: (bebas)");
+        JLabel infoLabel = new JLabel("<html><center>Username Admin: admin<br>Password Admin: admin123<br><br>Guru login menggunakan NIP<br>Password default: guru123</center></html>");
         infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         infoLabel.setForeground(new Color(150, 150, 150));
         leftPanel.add(infoLabel, gbc);
-        
-        loginBtn.addActionListener(e -> {
-            String username = usernameField.getText();
-            if (username.equals("admin") || username.equals("guru")) {
-                cardLayout.show(mainPanel, "menuUtama");
-            } else {
-                JOptionPane.showMessageDialog(this, "Login gagal! Username: admin atau guru", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
         
         // ============ PANEL KANAN (QUOTES) ============
         JPanel rightPanel = new JPanel(new GridBagLayout());
@@ -179,6 +179,65 @@ public class LoginPanel extends JPanel {
         
         add(leftPanel);
         add(rightPanel);
+    }
+    
+    private void doLogin() {
+        String role = (String) roleCombo.getSelectedItem();
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Username/NIP dan Password harus diisi!", "Peringatan", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        Object[] loginResult = null;
+        
+        if (role.equals("Guru")) {
+            loginResult = Database.loginGuru(username, password);
+            if (loginResult != null) {
+                Session.setLoginGuru((String) loginResult[0], (String) loginResult[1], (String) loginResult[2]);
+            }
+        } else if (role.equals("Administrator")) {
+            loginResult = Database.loginAdmin(username, password, "admin");
+            if (loginResult != null) {
+                String roleDb = (String) loginResult[2];
+                System.out.println("=== DEBUG LOGIN ===");
+                System.out.println("Role dari database: " + roleDb);
+                Session.setLoginAdmin((String) loginResult[0], (String) loginResult[1], roleDb);
+            }
+        } else if (role.equals("Kepala Sekolah")) {
+            loginResult = Database.loginAdmin(username, password, "kepsek");
+            if (loginResult != null) {
+                String roleDb = (String) loginResult[2];
+                Session.setLoginAdmin((String) loginResult[0], (String) loginResult[1], roleDb);
+            }
+        }
+        
+        System.out.println("=== SETELAH LOGIN ===");
+        System.out.println("Session Role: " + Session.getRole());
+        System.out.println("Session isAdmin: " + Session.isAdmin());
+        System.out.println("Session isGuru: " + Session.isGuru());
+        System.out.println("Session isKepsek: " + Session.isKepsek());
+        
+        if (loginResult != null) {
+            JOptionPane.showMessageDialog(this, "Selamat datang, " + Session.getNama() + "!\nAnda login sebagai " + role, "Berhasil", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Refresh menu
+           // Refresh menu dan konten di MenuUtamaPanel
+for (Component comp : mainPanel.getComponents()) {
+    if (comp instanceof MenuUtamaPanel) {
+        MenuUtamaPanel menuPanel = (MenuUtamaPanel) comp;
+        menuPanel.refreshMenu();
+        menuPanel.refreshContentPanel(); // TAMBAHKAN INI
+        break;
+    }
+}
+            
+            cardLayout.show(mainPanel, "menuUtama");
+        } else {
+            JOptionPane.showMessageDialog(this, "Login gagal!\nPeriksa Username/NIP dan Password Anda.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void startQuoteRotation() {

@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
-import java.util.List;
 
 public class DataKelasPanel extends JPanel {
     private CardLayout cardLayout;
@@ -15,7 +14,6 @@ public class DataKelasPanel extends JPanel {
     private JTextField searchField;
     private JPanel topStatsPanel;
     
-    // Label untuk statistik
     private JLabel totalKelasLabel;
     private JLabel mipaLabeL;
     private JLabel ipsLabel;
@@ -24,6 +22,14 @@ public class DataKelasPanel extends JPanel {
     public DataKelasPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
+        
+        // Cek akses - hanya admin yang bisa
+        if (!Session.isAdmin()) {
+            JOptionPane.showMessageDialog(null, "⛔ Fitur DATA KELAS hanya dapat diakses oleh Administrator!", "Akses Ditolak", JOptionPane.WARNING_MESSAGE);
+            cardLayout.show(mainPanel, "menuUtama");
+            return;
+        }
+        
         initComponents();
         loadData();
         loadWaliKelas();
@@ -34,40 +40,33 @@ public class DataKelasPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         setBackground(new Color(240, 242, 245));
         
-        // ============ TOP STATS CARDS ============
         topStatsPanel = new JPanel(new GridLayout(1, 4, 15, 0));
         topStatsPanel.setOpaque(false);
         topStatsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         
-        // Card 1: Total Kelas (Gradasi Biru)
         JPanel card1 = createStatCard("🏫", "TOTAL KELAS", "0", "Kelas Aktif");
         totalKelasLabel = (JLabel) card1.getClientProperty("valueLabel");
         topStatsPanel.add(card1);
         
-        // Card 2: Kelas MIPA (Gradasi Hijau)
         JPanel card2 = createStatCard("🔬", "KELAS MIPA", "0", "Kelas");
         mipaLabeL = (JLabel) card2.getClientProperty("valueLabel");
         topStatsPanel.add(card2);
         
-        // Card 3: Kelas IPS (Gradasi Ungu)
         JPanel card3 = createStatCard("🏛️", "KELAS IPS", "0", "Kelas");
         ipsLabel = (JLabel) card3.getClientProperty("valueLabel");
         topStatsPanel.add(card3);
         
-        // Card 4: Kelas Bahasa (Gradasi Kuning)
         JPanel card4 = createStatCard("📖", "KELAS BAHASA", "0", "Kelas");
         bahasaLabel = (JLabel) card4.getClientProperty("valueLabel");
         topStatsPanel.add(card4);
         
         add(topStatsPanel, BorderLayout.NORTH);
         
-        // ============ SPLIT PANE ============
         JSplitPane mainSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         mainSplit.setResizeWeight(0.35);
         mainSplit.setDividerSize(8);
         mainSplit.setBorder(BorderFactory.createEmptyBorder());
         
-        // ============ FORM PANEL ============
         JPanel formContainer = new JPanel(new BorderLayout());
         formContainer.setBackground(Color.WHITE);
         formContainer.setBorder(BorderFactory.createCompoundBorder(
@@ -87,21 +86,18 @@ public class DataKelasPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
         
-        // Baris 1 - ID Kelas
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.2;
         formPanel.add(new JLabel("ID Kelas:"), gbc);
         gbc.gridx = 1; gbc.weightx = 0.8;
         idField = new JTextField();
         formPanel.add(idField, gbc);
         
-        // Baris 2 - Nama Kelas
         gbc.gridx = 0; gbc.gridy = 1;
         formPanel.add(new JLabel("Nama Kelas:"), gbc);
         gbc.gridx = 1;
         namaField = new JTextField();
         formPanel.add(namaField, gbc);
         
-        // Baris 3 - Jurusan
         gbc.gridx = 0; gbc.gridy = 2;
         formPanel.add(new JLabel("Jurusan:"), gbc);
         gbc.gridx = 1;
@@ -109,7 +105,6 @@ public class DataKelasPanel extends JPanel {
         jurusanCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         formPanel.add(jurusanCombo, gbc);
         
-        // Baris 4 - Wali Kelas
         gbc.gridx = 0; gbc.gridy = 3;
         formPanel.add(new JLabel("Wali Kelas:"), gbc);
         gbc.gridx = 1;
@@ -117,7 +112,6 @@ public class DataKelasPanel extends JPanel {
         waliCombo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         formPanel.add(waliCombo, gbc);
         
-        // Button Panel
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         btnPanel.setBackground(Color.WHITE);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
@@ -135,16 +129,12 @@ public class DataKelasPanel extends JPanel {
         btnPanel.add(backBtn);
         
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2;
-        gbc.insets = new Insets(15, 0, 5, 0);
         formPanel.add(btnPanel, gbc);
         
         JScrollPane formScrollPane = new JScrollPane(formPanel);
-        formScrollPane.setBorder(BorderFactory.createEmptyBorder());
         formContainer.add(formScrollPane, BorderLayout.CENTER);
-        
         mainSplit.setTopComponent(formContainer);
         
-        // ============ TABEL PANEL ============
         JPanel tableContainer = new JPanel(new BorderLayout());
         tableContainer.setBackground(Color.WHITE);
         tableContainer.setBorder(BorderFactory.createCompoundBorder(
@@ -152,15 +142,11 @@ public class DataKelasPanel extends JPanel {
             BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
         
-        // Search Panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         searchPanel.setBackground(Color.WHITE);
         searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         
-        JLabel searchIcon = new JLabel("Cari (ID Kelas/Nama Kelas):");
-        searchIcon.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        searchPanel.add(searchIcon);
-        
+        searchPanel.add(new JLabel("Cari (ID Kelas/Nama Kelas):"));
         searchField = new JTextField(25);
         searchField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
@@ -186,7 +172,6 @@ public class DataKelasPanel extends JPanel {
         
         tableContainer.add(searchPanel, BorderLayout.NORTH);
         
-        // Tabel
         String[] columns = {"No", "ID Kelas", "Nama Kelas", "Jurusan", "Wali Kelas"};
         tableModel = new DefaultTableModel(columns, 0);
         table = new JTable(tableModel);
@@ -203,12 +188,10 @@ public class DataKelasPanel extends JPanel {
         
         JScrollPane tableScrollPane = new JScrollPane(table);
         tableContainer.add(tableScrollPane, BorderLayout.CENTER);
-        
         mainSplit.setBottomComponent(tableContainer);
         
         add(mainSplit, BorderLayout.CENTER);
         
-        // ============ EVENT HANDLERS ============
         tambahBtn.addActionListener(e -> tambahData());
         ubahBtn.addActionListener(e -> ubahData());
         hapusBtn.addActionListener(e -> hapusData());
@@ -217,7 +200,15 @@ public class DataKelasPanel extends JPanel {
             loadWaliKelas();
             searchField.setText("");
         });
-        backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
+        backBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menuUtama");
+            for (Component comp : mainPanel.getComponents()) {
+                if (comp instanceof MenuUtamaPanel) {
+                    ((MenuUtamaPanel) comp).showDashboard();
+                    break;
+                }
+            }
+        });
         
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -269,7 +260,7 @@ public class DataKelasPanel extends JPanel {
         
         card.setLayout(new BorderLayout(8, 5));
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
         JLabel iconLabel = new JLabel(icon);
         iconLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 28));
@@ -282,7 +273,7 @@ public class DataKelasPanel extends JPanel {
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         JLabel valueLabel = new JLabel(defaultValue);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
         valueLabel.setForeground(Color.WHITE);
         valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
@@ -307,7 +298,7 @@ public class DataKelasPanel extends JPanel {
     
     private void updateTopStats() {
         try {
-            List<String[]> kelasList = Database.getAllKelas();
+            java.util.List<String[]> kelasList = Database.getAllKelas();
             int total = kelasList.size();
             int mipa = 0, ips = 0, bahasa = 0;
             for (String[] k : kelasList) {
@@ -326,12 +317,12 @@ public class DataKelasPanel extends JPanel {
     
     private void loadWaliKelas() {
         waliCombo.removeAllItems();
-        List<String[]> guruList = Database.getAllGuru();
+        java.util.List<String[]> guruList = Database.getAllGuru();
         if (guruList.isEmpty()) {
             waliCombo.addItem("-- Belum ada data guru --");
         } else {
             for (String[] guru : guruList) {
-                waliCombo.addItem(guru[2]); // Nama Guru
+                waliCombo.addItem(guru[2]);
             }
         }
     }
@@ -344,14 +335,6 @@ public class DataKelasPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createEmptyBorder(6, 18, 6, 18));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor.darker());
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor);
-            }
-        });
         return btn;
     }
     

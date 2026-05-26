@@ -182,7 +182,7 @@ public class DataSiswaPanel extends JPanel {
         formPanel.add(namaIbuField, gbc);
         
         // Button Panel
-        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
         btnPanel.setBackground(Color.WHITE);
         btnPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 5, 0));
         
@@ -229,15 +229,10 @@ public class DataSiswaPanel extends JPanel {
         });
         searchPanel.add(searchField);
         
-        JButton cariBtn = new JButton("CARI");
-        cariBtn.setBackground(new Color(52, 152, 219));
-        cariBtn.setForeground(Color.WHITE);
-        cariBtn.addActionListener(e -> cariData(searchField.getText().trim()));
+        JButton cariBtn = createSmallButton("CARI", new Color(52, 152, 219));
         searchPanel.add(cariBtn);
         
-        JButton resetCariBtn = new JButton("RESET");
-        resetCariBtn.setBackground(new Color(108, 117, 125));
-        resetCariBtn.setForeground(Color.WHITE);
+        JButton resetCariBtn = createSmallButton("RESET", new Color(108, 117, 125));
         resetCariBtn.addActionListener(e -> {
             searchField.setText("");
             loadData();
@@ -285,7 +280,19 @@ public class DataSiswaPanel extends JPanel {
             updateTopStats();
             searchField.setText("");
         });
-        backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
+        
+        // ============ TOMBOL KEMBALI KE DASHBOARD ============
+        backBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menuUtama");
+            for (Component comp : mainPanel.getComponents()) {
+                if (comp instanceof MenuUtamaPanel) {
+                    ((MenuUtamaPanel) comp).showDashboard();
+                    break;
+                }
+            }
+        });
+        
+        cariBtn.addActionListener(e -> cariData(searchField.getText().trim()));
         
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -316,6 +323,28 @@ public class DataSiswaPanel extends JPanel {
         });
         
         updateTopStats();
+    }
+    
+    private JButton createStyledButton(String text, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
+    }
+    
+    private JButton createSmallButton(String text, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 15, 6, 15));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return btn;
     }
     
     private JPanel createStatCard(String icon, String title, String defaultValue, String subtitle) {
@@ -409,25 +438,6 @@ public class DataSiswaPanel extends JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    
-    private JButton createStyledButton(String text, Color bgColor) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        btn.setBackground(bgColor);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(8, 18, 8, 18));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor.darker());
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor);
-            }
-        });
-        return btn;
     }
     
     private void cariData(String keyword) {

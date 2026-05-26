@@ -29,6 +29,8 @@ public class Main extends JFrame {
             e.printStackTrace();
         }
         
+        Database.createTableEvent();
+        
         if (!KoneksiDB.testConnection()) {
             JOptionPane.showMessageDialog(null, 
                 "Gagal koneksi ke database!\nPastikan MySQL sedang berjalan.", 
@@ -44,20 +46,8 @@ public class Main extends JFrame {
         mainPanel = new JPanel(cardLayout);
         mainPanel.setBackground(new Color(245, 245, 250));
         
-        // Tambahkan panel
         mainPanel.add(new LoginPanel(cardLayout, mainPanel), "login");
         mainPanel.add(new MenuUtamaPanel(cardLayout, mainPanel), "menuUtama");
-        mainPanel.add(new DataSiswaPanel(cardLayout, mainPanel), "dataSiswa");
-        mainPanel.add(new DataGuruPanel(cardLayout, mainPanel), "dataGuru");
-        mainPanel.add(new DataKelasPanel(cardLayout, mainPanel), "dataKelas");
-        mainPanel.add(new InputNilaiPanel(cardLayout, mainPanel), "inputNilai");
-        mainPanel.add(new AbsensiPanel(cardLayout, mainPanel), "absensi");
-        mainPanel.add(new PembayaranSPPPanel(cardLayout, mainPanel), "pembayaranSPP");
-        mainPanel.add(new LaporanSIswaPanel(cardLayout, mainPanel), "laporanSiswa");
-        mainPanel.add(new LaporanGuruPanel(cardLayout, mainPanel), "laporanGuru");
-        mainPanel.add(new LaporanNilaiPanel(cardLayout, mainPanel), "laporanNilai");
-        mainPanel.add(new LaporanAbsensiPanel(cardLayout, mainPanel), "laporanAbsensi");
-        mainPanel.add(new ProfilSekolahPanel(cardLayout, mainPanel), "profilSekolah");
         
         add(mainPanel);
         cardLayout.show(mainPanel, "login");

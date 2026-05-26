@@ -21,31 +21,18 @@ public class MenuUtamaPanel extends JPanel {
     private JPanel contentPanel;
     private CardLayout contentCardLayout;
     private JButton activeButton;
-    private JPanel sidebarPanel;
-    private JPanel headerPanel;
-    private JPanel mainContentPanel;
-    private JPanel footerPanel;
-    private JLabel footerLabel;
-    private JLabel footerTimeLabel;
     
-    // Dark Mode
-    private boolean isDarkMode = false;
-    private JButton darkModeBtn;
-    
-    // Label untuk statistik
     private JLabel totalSiswaLabel;
     private JLabel totalLakiLabel;
     private JLabel totalPerempuanLabel;
     private JLabel totalKelasLabel;
     private JLabel notifikasiLabel;
     
-    // Dataset untuk chart
     private DefaultPieDataset pieDataset;
     private DefaultCategoryDataset barDataset;
     private ChartPanel pieChartPanel;
     private ChartPanel barChartPanel;
     
-    // Panel-panel asli
     private DataSiswaPanel dataSiswaPanel;
     private DataGuruPanel dataGuruPanel;
     private DataKelasPanel dataKelasPanel;
@@ -57,6 +44,8 @@ public class MenuUtamaPanel extends JPanel {
     private LaporanNilaiPanel laporanNilaiPanel;
     private LaporanAbsensiPanel laporanAbsensiPanel;
     private ProfilSekolahPanel profilSekolahPanel;
+    private CetakRaportPanel cetakRaportPanel;
+    private KalenderAkademikPanel kalenderAkademikPanel;
     
     public MenuUtamaPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
@@ -74,8 +63,8 @@ public class MenuUtamaPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 242, 245));
         
-        // ============ HEADER ============
-        headerPanel = new JPanel(new BorderLayout());
+        // HEADER
+        JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(41, 128, 185));
         headerPanel.setPreferredSize(new Dimension(0, 65));
         
@@ -88,8 +77,8 @@ public class MenuUtamaPanel extends JPanel {
             Image scaledImage = logoIcon.getImage().getScaledInstance(35, 35, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledImage));
         } catch (Exception e) {
-            logoLabel.setText("🏫");
-            logoLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 28));
+            logoLabel.setText("SMA");
+            logoLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
             logoLabel.setForeground(Color.WHITE);
         }
         logoPanel.add(logoLabel);
@@ -101,102 +90,113 @@ public class MenuUtamaPanel extends JPanel {
         
         headerPanel.add(logoPanel, BorderLayout.WEST);
         
-        // Right Panel dengan Dark Mode Toggle
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
-        rightPanel.setOpaque(false);
+        JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 12));
+        userPanel.setOpaque(false);
         
         timeLabel = new JLabel();
         timeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         timeLabel.setForeground(Color.WHITE);
         
-        // Dark Mode Toggle Button
-        darkModeBtn = new JButton("🌙");
-        darkModeBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        darkModeBtn.setBackground(new Color(52, 73, 94));
-        darkModeBtn.setForeground(Color.WHITE);
-        darkModeBtn.setFocusPainted(false);
-        darkModeBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        darkModeBtn.setBorder(BorderFactory.createEmptyBorder(5, 12, 5, 12));
-        darkModeBtn.addActionListener(e -> toggleDarkMode());
-        
-        JButton refreshBtn = new JButton("🔄");
-        refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JButton refreshBtn = new JButton("REFRESH");
+        refreshBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
         refreshBtn.setBackground(new Color(52, 152, 219));
         refreshBtn.setForeground(Color.WHITE);
         refreshBtn.setFocusPainted(false);
-        refreshBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         refreshBtn.addActionListener(e -> refreshDashboard());
         
         JButton logoutBtn = new JButton("LOGOUT");
-        logoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        logoutBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
         logoutBtn.setBackground(new Color(231, 76, 60));
         logoutBtn.setForeground(Color.WHITE);
         logoutBtn.setFocusPainted(false);
-        logoutBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        logoutBtn.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         logoutBtn.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(MenuUtamaPanel.this, "Yakin ingin logout?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
+                Session.clear();
                 cardLayout.show(mainPanel, "login");
             }
         });
         
-        rightPanel.add(timeLabel);
-        rightPanel.add(darkModeBtn);
-        rightPanel.add(refreshBtn);
-        rightPanel.add(logoutBtn);
-        headerPanel.add(rightPanel, BorderLayout.EAST);
+        userPanel.add(refreshBtn);
+        userPanel.add(Box.createHorizontalStrut(10));
+        userPanel.add(timeLabel);
+        userPanel.add(Box.createHorizontalStrut(15));
+        userPanel.add(logoutBtn);
+        headerPanel.add(userPanel, BorderLayout.EAST);
         
         add(headerPanel, BorderLayout.NORTH);
         
-        // ============ MAIN CONTENT ============
-        mainContentPanel = new JPanel(new BorderLayout());
+        // MAIN CONTENT
+        JPanel mainContentPanel = new JPanel(new BorderLayout());
         mainContentPanel.setBackground(new Color(240, 242, 245));
         
-        // ============ SIDEBAR ============
-        sidebarPanel = new JPanel();
+        // SIDEBAR
+        JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(new Color(44, 62, 80));
-        sidebarPanel.setPreferredSize(new Dimension(230, 0));
         sidebarPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
         
-        // Profile Panel
+        JScrollPane sidebarScrollPane = new JScrollPane(sidebarPanel);
+        sidebarScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        sidebarScrollPane.setBackground(new Color(44, 62, 80));
+        sidebarScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        sidebarScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        sidebarScrollPane.setPreferredSize(new Dimension(230, 0));
+        
         JPanel profilePanel = new JPanel();
-        profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
-        profilePanel.setBackground(new Color(44, 62, 80));
-        profilePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
-        profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
+profilePanel.setBackground(new Color(44, 62, 80));
+profilePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+JLabel avatarLabel = new JLabel("👤");
+avatarLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 40));
+avatarLabel.setForeground(Color.WHITE);
+avatarLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+profilePanel.add(avatarLabel);
+
+// Ambil role dan nama dari Session
+String roleText = "Guest";
+String namaText = "SMA PGRI 4 Jakarta";
+
+if (Session.getRole() != null) {
+    if (Session.getRole().equals("admin")) {
+        roleText = "Administrator";
+    } else if (Session.getRole().equals("guru")) {
+        roleText = "Guru";
+    } else if (Session.getRole().equals("kepsek")) {
+        roleText = "Kepala Sekolah";
+    } else {
+        roleText = Session.getRole();
+    }
+}
+if (Session.getNama() != null && !Session.getNama().isEmpty()) {
+    namaText = Session.getNama();
+}
+
+JLabel userRoleLabel = new JLabel(roleText);
+userRoleLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+userRoleLabel.setForeground(Color.WHITE);
+userRoleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+profilePanel.add(userRoleLabel);
+
+JLabel userNameLabel = new JLabel(namaText);
+userNameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+userNameLabel.setForeground(new Color(189, 195, 199));
+userNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+profilePanel.add(userNameLabel);
+
+sidebarPanel.add(profilePanel);
+sidebarPanel.add(Box.createVerticalStrut(10));
         
-        JLabel avatarLabel = new JLabel("👤");
-        avatarLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 40));
-        avatarLabel.setForeground(Color.WHITE);
-        avatarLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        profilePanel.add(avatarLabel);
-        
-        JLabel userRoleLabel = new JLabel("Administrator");
-        userRoleLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        userRoleLabel.setForeground(Color.WHITE);
-        userRoleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        profilePanel.add(userRoleLabel);
-        
-        JLabel userNameLabel = new JLabel("SMA PGRI 4 Jakarta");
-        userNameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        userNameLabel.setForeground(new Color(189, 195, 199));
-        userNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        profilePanel.add(userNameLabel);
-        
-        sidebarPanel.add(profilePanel);
-        sidebarPanel.add(Box.createVerticalStrut(10));
-        
-        // Separator
         JSeparator sep = new JSeparator();
         sep.setForeground(new Color(68, 86, 104));
         sep.setMaximumSize(new Dimension(230, 2));
         sidebarPanel.add(sep);
         sidebarPanel.add(Box.createVerticalStrut(15));
         
-        // Menu Items
-        String[][] menuItems = {
+        // MENU ITEMS - ALL
+        String[][] allMenuItems = {
             {"📊", "DASHBOARD", "dashboard"},
             {"🏫", "PROFIL SEKOLAH", "profilSekolah"},
             {"👨‍🎓", "DATA SISWA", "dataSiswa"},
@@ -208,8 +208,64 @@ public class MenuUtamaPanel extends JPanel {
             {"📄", "LAPORAN SISWA", "laporanSiswa"},
             {"📄", "LAPORAN GURU", "laporanGuru"},
             {"📊", "LAPORAN NILAI", "laporanNilai"},
-            {"📋", "LAPORAN ABSENSI", "laporanAbsensi"}
+            {"📋", "LAPORAN ABSENSI", "laporanAbsensi"},
+            {"📑", "CETAK RAPORT", "cetakRaport"},
+            {"📅", "KALENDER AKADEMIK", "kalenderAkademik"}
         };
+        
+       // FILTER MENU BERDASARKAN ROLE
+java.util.ArrayList<String[]> filteredMenu = new java.util.ArrayList<>();
+String role = Session.getRole();
+
+System.out.println("=== MENU UTAMA ===");
+System.out.println("Session Role: " + role);
+
+if (role == null) {
+    System.out.println("Role NULL - Tampilkan menu terbatas");
+    for (String[] item : allMenuItems) {
+        if (item[1].equals("DASHBOARD") || item[1].equals("PROFIL SEKOLAH")) {
+            filteredMenu.add(item);
+        }
+    }
+} else if (role.equals("admin")) {
+    System.out.println("Role ADMIN - Tampilkan SEMUA menu");
+    for (String[] item : allMenuItems) {
+        filteredMenu.add(item);
+        System.out.println("  + " + item[1]);
+    }
+} else if (role.equals("guru")) {
+    System.out.println("Role GURU - Tampilkan menu terbatas");
+    for (String[] item : allMenuItems) {
+        String menuName = item[1];
+        if (!menuName.equals("DATA GURU") && !menuName.equals("DATA KELAS") && 
+            !menuName.equals("PEMBAYARAN SPP") && !menuName.equals("LAPORAN GURU")) {
+            filteredMenu.add(item);
+            System.out.println("  + " + item[1]);
+        }
+    }
+} else if (role.equals("kepsek")) {
+    System.out.println("Role KEPSEK - Tampilkan laporan");
+    for (String[] item : allMenuItems) {
+        String menuName = item[1];
+        if (menuName.equals("DASHBOARD") || menuName.equals("PROFIL SEKOLAH") ||
+            menuName.equals("LAPORAN SISWA") || menuName.equals("LAPORAN GURU") ||
+            menuName.equals("LAPORAN NILAI") || menuName.equals("LAPORAN ABSENSI") ||
+            menuName.equals("KALENDER AKADEMIK")) {
+            filteredMenu.add(item);
+            System.out.println("  + " + item[1]);
+        }
+    }
+} else {
+    System.out.println("Role tidak dikenal: " + role);
+    for (String[] item : allMenuItems) {
+        if (item[1].equals("DASHBOARD")) {
+            filteredMenu.add(item);
+        }
+    }
+}
+
+System.out.println("Total menu setelah filter: " + filteredMenu.size());
+String[][] menuItems = filteredMenu.toArray(new String[0][]);
         
         for (String[] item : menuItems) {
             final String target = item[2];
@@ -255,7 +311,7 @@ public class MenuUtamaPanel extends JPanel {
         
         sidebarPanel.add(Box.createVerticalGlue());
         
-        // ============ INISIALISASI PANEL ASLI ============
+        // INIT PANELS
         dataSiswaPanel = new DataSiswaPanel(cardLayout, mainPanel);
         dataGuruPanel = new DataGuruPanel(cardLayout, mainPanel);
         dataKelasPanel = new DataKelasPanel(cardLayout, mainPanel);
@@ -267,8 +323,10 @@ public class MenuUtamaPanel extends JPanel {
         laporanNilaiPanel = new LaporanNilaiPanel(cardLayout, mainPanel);
         laporanAbsensiPanel = new LaporanAbsensiPanel(cardLayout, mainPanel);
         profilSekolahPanel = new ProfilSekolahPanel(cardLayout, mainPanel);
+        cetakRaportPanel = new CetakRaportPanel(cardLayout, mainPanel);
+        kalenderAkademikPanel = new KalenderAkademikPanel(cardLayout, mainPanel);
         
-        // ============ CONTENT PANEL ============
+        // CONTENT PANEL
         contentCardLayout = new CardLayout();
         contentPanel = new JPanel(contentCardLayout);
         contentPanel.setBackground(new Color(240, 242, 245));
@@ -290,24 +348,26 @@ public class MenuUtamaPanel extends JPanel {
         contentPanel.add(laporanGuruPanel, "laporanGuru");
         contentPanel.add(laporanNilaiPanel, "laporanNilai");
         contentPanel.add(laporanAbsensiPanel, "laporanAbsensi");
+        contentPanel.add(cetakRaportPanel, "cetakRaport");
+        contentPanel.add(kalenderAkademikPanel, "kalenderAkademik");
         
-        mainContentPanel.add(sidebarPanel, BorderLayout.WEST);
+        mainContentPanel.add(sidebarScrollPane, BorderLayout.WEST);
         mainContentPanel.add(contentPanel, BorderLayout.CENTER);
         
         add(mainContentPanel, BorderLayout.CENTER);
         
-        // ============ FOOTER ============
-        footerPanel = new JPanel(new BorderLayout());
+        // FOOTER
+        JPanel footerPanel = new JPanel(new BorderLayout());
         footerPanel.setBackground(new Color(52, 73, 94));
         footerPanel.setPreferredSize(new Dimension(0, 32));
         
-        footerLabel = new JLabel("SIAKAD SMA PGRI 4 Jakarta");
+        JLabel footerLabel = new JLabel("SIAKAD SMA PGRI 4 Jakarta");
         footerLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         footerLabel.setForeground(new Color(189, 195, 199));
         footerLabel.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
         footerPanel.add(footerLabel, BorderLayout.WEST);
         
-        footerTimeLabel = new JLabel();
+        JLabel footerTimeLabel = new JLabel();
         footerTimeLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         footerTimeLabel.setForeground(new Color(189, 195, 199));
         footerTimeLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
@@ -321,91 +381,51 @@ public class MenuUtamaPanel extends JPanel {
         }).start();
     }
     
-    // ============ DARK MODE TOGGLE METHOD ============
-    private void toggleDarkMode() {
-        isDarkMode = !isDarkMode;
-        
-        if (isDarkMode) {
-            // === DARK MODE COLORS ===
-            setBackground(new Color(30, 30, 35));
-            mainContentPanel.setBackground(new Color(30, 30, 35));
-            contentPanel.setBackground(new Color(30, 30, 35));
-            headerPanel.setBackground(new Color(20, 20, 25));
-            sidebarPanel.setBackground(new Color(20, 20, 25));
-            
-            // Sidebar buttons
-            for (Component comp : sidebarPanel.getComponents()) {
-                if (comp instanceof JPanel) {
-                    comp.setBackground(new Color(20, 20, 25));
-                }
-                if (comp instanceof JButton) {
-                    JButton btn = (JButton) comp;
-                    if (btn != activeButton) {
-                        btn.setBackground(new Color(20, 20, 25));
-                        btn.setForeground(new Color(200, 200, 200));
-                    }
-                }
-            }
-            
-            // Footer
-            footerPanel.setBackground(new Color(20, 20, 25));
-            footerLabel.setForeground(new Color(150, 150, 150));
-            footerTimeLabel.setForeground(new Color(150, 150, 150));
-            
-            // Dark mode button
-            darkModeBtn.setText("☀️");
-            darkModeBtn.setBackground(new Color(241, 196, 15));
-            darkModeBtn.setForeground(Color.BLACK);
-            
-        } else {
-            // === LIGHT MODE COLORS ===
-            setBackground(new Color(240, 242, 245));
-            mainContentPanel.setBackground(new Color(240, 242, 245));
-            contentPanel.setBackground(new Color(240, 242, 245));
-            headerPanel.setBackground(new Color(41, 128, 185));
-            sidebarPanel.setBackground(new Color(44, 62, 80));
-            
-            // Sidebar buttons
-            for (Component comp : sidebarPanel.getComponents()) {
-                if (comp instanceof JPanel) {
-                    comp.setBackground(new Color(44, 62, 80));
-                }
-                if (comp instanceof JButton) {
-                    JButton btn = (JButton) comp;
-                    if (btn != activeButton) {
-                        btn.setBackground(new Color(44, 62, 80));
-                        btn.setForeground(Color.WHITE);
-                    }
-                }
-            }
-            
-            // Footer
-            footerPanel.setBackground(new Color(52, 73, 94));
-            footerLabel.setForeground(new Color(189, 195, 199));
-            footerTimeLabel.setForeground(new Color(189, 195, 199));
-            
-            // Light mode button
-            darkModeBtn.setText("🌙");
-            darkModeBtn.setBackground(new Color(52, 73, 94));
-            darkModeBtn.setForeground(Color.WHITE);
-        }
-        
-        // Refresh
-        sidebarPanel.revalidate();
-        sidebarPanel.repaint();
-        mainContentPanel.revalidate();
-        mainContentPanel.repaint();
-        footerPanel.revalidate();
-        footerPanel.repaint();
-    }
-    
-    // ============ DASHBOARD PANEL ============
     private JPanel createDashboardPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(20, 25, 20, 25));
         
+        // WELCOME PANEL
+        JPanel welcomePanel = new JPanel();
+        welcomePanel.setLayout(new BoxLayout(welcomePanel, BoxLayout.Y_AXIS));
+        welcomePanel.setBackground(new Color(240, 248, 255));
+        welcomePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 220, 240), 1),
+            BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
+        welcomePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        
+        String namaUser = Session.getNama() != null ? Session.getNama() : "Pengguna";
+        JLabel welcomeLabel = new JLabel("👋 Selamat Datang, " + namaUser + "!");
+        welcomeLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        welcomeLabel.setForeground(new Color(41, 128, 185));
+        
+        String roleTextInfo = "";
+        if (Session.isAdmin()) {
+            roleTextInfo = "Administrator - Anda memiliki akses penuh ke semua fitur";
+        } else if (Session.isGuru()) {
+            String mapel = Session.getMapel() != null ? Session.getMapel() : "";
+            roleTextInfo = "Guru - " + mapel;
+        } else if (Session.isKepsek()) {
+            roleTextInfo = "Kepala Sekolah - Akses laporan dan dashboard";
+        } else {
+            roleTextInfo = "Silakan login untuk mengakses semua fitur";
+        }
+        
+        JLabel roleLabel = new JLabel(roleTextInfo);
+        roleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        roleLabel.setForeground(new Color(100, 100, 100));
+        
+        welcomePanel.add(welcomeLabel);
+        welcomePanel.add(Box.createVerticalStrut(5));
+        welcomePanel.add(roleLabel);
+        
+        panel.add(welcomePanel);
+        panel.add(Box.createVerticalStrut(15));
+        
+        // STATS CARDS
         JPanel statsPanel = new JPanel(new GridLayout(1, 4, 20, 0));
         statsPanel.setOpaque(false);
         statsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
@@ -425,10 +445,11 @@ public class MenuUtamaPanel extends JPanel {
         statsPanel.add(card2);
         statsPanel.add(card3);
         statsPanel.add(card4);
+        
         panel.add(statsPanel);
         panel.add(Box.createVerticalStrut(20));
         
-        // Charts
+        // CHARTS
         JPanel chartsPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         chartsPanel.setOpaque(false);
         chartsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
@@ -474,7 +495,7 @@ public class MenuUtamaPanel extends JPanel {
         panel.add(chartsPanel);
         panel.add(Box.createVerticalStrut(20));
         
-        // Info Panel
+        // INFO
         JPanel infoBorderPanel = new JPanel(new BorderLayout());
         infoBorderPanel.setBorder(BorderFactory.createTitledBorder("ℹ️ INFORMASI SISTEM"));
         infoBorderPanel.setBackground(Color.WHITE);
@@ -486,7 +507,9 @@ public class MenuUtamaPanel extends JPanel {
             "  • Transaksi (Input Nilai, Absensi, Pembayaran SPP)\n" +
             "  • Laporan (Siswa, Guru, Nilai, Absensi)\n" +
             "  • Cetak PDF dengan format surat resmi\n" +
-            "  • Grafik Dashboard (Statistik Gender & Jurusan)\n\n" +
+            "  • Grafik Dashboard (Statistik Gender & Jurusan)\n" +
+            "  • Cetak Raport Otomatis\n" +
+            "  • Kalender Akademik\n\n" +
             "Gunakan menu di samping kiri untuk mengakses fitur.");
         infoArea.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         infoArea.setEditable(false);
@@ -497,7 +520,7 @@ public class MenuUtamaPanel extends JPanel {
         panel.add(infoBorderPanel);
         panel.add(Box.createVerticalStrut(15));
         
-        // Notifikasi
+        // NOTIFIKASI
         JPanel notifPanel = new JPanel(new BorderLayout());
         notifPanel.setBorder(BorderFactory.createTitledBorder("⚠️ NOTIFIKASI PEMBAYARAN SPP"));
         notifPanel.setBackground(new Color(255, 245, 230));
@@ -585,11 +608,16 @@ public class MenuUtamaPanel extends JPanel {
                 final int totalSiswa = siswaList.size();
                 final int totalKelas = kelasList.size();
                 
-                int lakiTemp = 0, perempuanTemp = 0;
+                int lakiTemp = 0;
+                int perempuanTemp = 0;
+                
                 for (String[] s : siswaList) {
-                    if (s.length > 3 && s[3] != null) {
-                        if (s[3].equalsIgnoreCase("Laki-laki")) lakiTemp++;
-                        else if (s[3].equalsIgnoreCase("Perempuan")) perempuanTemp++;
+                    if (s.length > 3) {
+                        if (s[3].equalsIgnoreCase("Laki-laki")) {
+                            lakiTemp++;
+                        } else if (s[3].equalsIgnoreCase("Perempuan")) {
+                            perempuanTemp++;
+                        }
                     }
                 }
                 
@@ -634,9 +662,14 @@ public class MenuUtamaPanel extends JPanel {
                             if (siswa.length > 11) {
                                 String jurusan = siswa[11];
                                 if (jurusan == null || jurusan.isEmpty()) continue;
-                                if (jurusan.equalsIgnoreCase("MIPA")) jurusanCount.put("MIPA", jurusanCount.get("MIPA") + 1);
-                                else if (jurusan.equalsIgnoreCase("IPS")) jurusanCount.put("IPS", jurusanCount.get("IPS") + 1);
-                                else if (jurusan.equalsIgnoreCase("Bahasa")) jurusanCount.put("Bahasa", jurusanCount.get("Bahasa") + 1);
+                                
+                                if (jurusan.equalsIgnoreCase("MIPA")) {
+                                    jurusanCount.put("MIPA", jurusanCount.get("MIPA") + 1);
+                                } else if (jurusan.equalsIgnoreCase("IPS")) {
+                                    jurusanCount.put("IPS", jurusanCount.get("IPS") + 1);
+                                } else if (jurusan.equalsIgnoreCase("Bahasa")) {
+                                    jurusanCount.put("Bahasa", jurusanCount.get("Bahasa") + 1);
+                                }
                             }
                         }
                         
@@ -656,6 +689,7 @@ public class MenuUtamaPanel extends JPanel {
                         }
                     }
                 });
+                
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -680,4 +714,224 @@ public class MenuUtamaPanel extends JPanel {
         });
         clock.start();
     }
+    public void refreshMenu() {
+    // Cari sidebarPanel yang ada di dalam sidebarScrollPane
+    JScrollPane sidebarScrollPane = null;
+    JPanel sidebarPanel = null;
+    
+    // Cari komponen sidebar
+    for (Component comp : getComponents()) {
+        if (comp instanceof JPanel) {
+            JPanel mainContent = (JPanel) comp;
+            for (Component comp2 : mainContent.getComponents()) {
+                if (comp2 instanceof JScrollPane) {
+                    sidebarScrollPane = (JScrollPane) comp2;
+                    if (sidebarScrollPane.getViewport().getView() instanceof JPanel) {
+                        sidebarPanel = (JPanel) sidebarScrollPane.getViewport().getView();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (sidebarPanel == null) return;
+    
+    // Hapus semua komponen di sidebarPanel kecuali profile panel dan separator
+    sidebarPanel.removeAll();
+    
+    // ============ PROFILE PANEL ============
+    JPanel profilePanel = new JPanel();
+    profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
+    profilePanel.setBackground(new Color(44, 62, 80));
+    profilePanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+    profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    
+    JLabel avatarLabel = new JLabel("👤");
+    avatarLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 40));
+    avatarLabel.setForeground(Color.WHITE);
+    avatarLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    profilePanel.add(avatarLabel);
+    
+    String roleText = "Guest";
+    String namaText = "SMA PGRI 4 Jakarta";
+    
+    if (Session.getRole() != null) {
+        if (Session.getRole().equals("admin")) roleText = "Administrator";
+        else if (Session.getRole().equals("guru")) roleText = "Guru";
+        else if (Session.getRole().equals("kepsek")) roleText = "Kepala Sekolah";
+    }
+    if (Session.getNama() != null && !Session.getNama().isEmpty()) {
+        namaText = Session.getNama();
+    }
+    
+    JLabel userRoleLabel = new JLabel(roleText);
+    userRoleLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    userRoleLabel.setForeground(Color.WHITE);
+    userRoleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    profilePanel.add(userRoleLabel);
+    
+    JLabel userNameLabel = new JLabel(namaText);
+    userNameLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+    userNameLabel.setForeground(new Color(189, 195, 199));
+    userNameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    profilePanel.add(userNameLabel);
+    
+    sidebarPanel.add(profilePanel);
+    sidebarPanel.add(Box.createVerticalStrut(10));
+    
+    // ============ SEPARATOR ============
+    JSeparator sep = new JSeparator();
+    sep.setForeground(new Color(68, 86, 104));
+    sep.setMaximumSize(new Dimension(230, 2));
+    sidebarPanel.add(sep);
+    sidebarPanel.add(Box.createVerticalStrut(15));
+    
+    // ============ MENU ITEMS ============
+    String[][] allMenuItems = {
+        {"📊", "DASHBOARD", "dashboard"},
+        {"🏫", "PROFIL SEKOLAH", "profilSekolah"},
+        {"👨‍🎓", "DATA SISWA", "dataSiswa"},
+        {"👨‍🏫", "DATA GURU", "dataGuru"},
+        {"🏫", "DATA KELAS", "dataKelas"},
+        {"📝", "INPUT NILAI", "inputNilai"},
+        {"📅", "ABSENSI", "absensi"},
+        {"💰", "PEMBAYARAN SPP", "pembayaranSPP"},
+        {"📄", "LAPORAN SISWA", "laporanSiswa"},
+        {"📄", "LAPORAN GURU", "laporanGuru"},
+        {"📊", "LAPORAN NILAI", "laporanNilai"},
+        {"📋", "LAPORAN ABSENSI", "laporanAbsensi"},
+        {"📑", "CETAK RAPORT", "cetakRaport"},
+        {"📅", "KALENDER AKADEMIK", "kalenderAkademik"}
+    };
+    
+    // Filter menu berdasarkan role
+    java.util.ArrayList<String[]> filteredMenu = new java.util.ArrayList<>();
+    String role = Session.getRole();
+    
+    if (role == null) {
+        for (String[] item : allMenuItems) {
+            if (item[1].equals("DASHBOARD") || item[1].equals("PROFIL SEKOLAH")) {
+                filteredMenu.add(item);
+            }
+        }
+    } else if (role.equals("admin")) {
+        for (String[] item : allMenuItems) {
+            filteredMenu.add(item);
+        }
+    } else if (role.equals("guru")) {
+        for (String[] item : allMenuItems) {
+            String menuName = item[1];
+            if (!menuName.equals("DATA GURU") && !menuName.equals("DATA KELAS") && 
+                !menuName.equals("PEMBAYARAN SPP") && !menuName.equals("LAPORAN GURU")) {
+                filteredMenu.add(item);
+            }
+        }
+    } else if (role.equals("kepsek")) {
+        for (String[] item : allMenuItems) {
+            String menuName = item[1];
+            if (menuName.equals("DASHBOARD") || menuName.equals("PROFIL SEKOLAH") ||
+                menuName.equals("LAPORAN SISWA") || menuName.equals("LAPORAN GURU") ||
+                menuName.equals("LAPORAN NILAI") || menuName.equals("LAPORAN ABSENSI") ||
+                menuName.equals("KALENDER AKADEMIK")) {
+                filteredMenu.add(item);
+            }
+        }
+    } else {
+        for (String[] item : allMenuItems) {
+            if (item[1].equals("DASHBOARD")) {
+                filteredMenu.add(item);
+            }
+        }
+    }
+    
+    String[][] menuItems = filteredMenu.toArray(new String[0][]);
+    
+    for (String[] item : menuItems) {
+        final String target = item[2];
+        JButton menuBtn = new JButton(item[0] + "  " + item[1]);
+        menuBtn.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 12));
+        menuBtn.setBackground(new Color(44, 62, 80));
+        menuBtn.setForeground(Color.WHITE);
+        menuBtn.setBorder(BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        menuBtn.setFocusPainted(false);
+        menuBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        menuBtn.setHorizontalAlignment(SwingConstants.LEFT);
+        menuBtn.setMaximumSize(new Dimension(230, 40));
+        menuBtn.setPreferredSize(new Dimension(230, 38));
+        
+        menuBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                if (activeButton != menuBtn) {
+                    menuBtn.setBackground(new Color(52, 73, 94));
+                }
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                if (activeButton != menuBtn) {
+                    menuBtn.setBackground(new Color(44, 62, 80));
+                }
+            }
+        });
+        
+        menuBtn.addActionListener(e -> {
+            if (activeButton != null) {
+                activeButton.setBackground(new Color(44, 62, 80));
+            }
+            menuBtn.setBackground(new Color(41, 128, 185));
+            activeButton = menuBtn;
+            contentCardLayout.show(contentPanel, target);
+            if (target.equals("dashboard")) {
+                refreshDashboard();
+            }
+        });
+        
+        sidebarPanel.add(menuBtn);
+        sidebarPanel.add(Box.createVerticalStrut(3));
+    }
+    
+    sidebarPanel.add(Box.createVerticalGlue());
+    sidebarPanel.revalidate();
+    sidebarPanel.repaint();
+}
+    public void refreshContentPanel() {
+    // Buat ulang semua panel yang ada
+    dataSiswaPanel = new DataSiswaPanel(cardLayout, mainPanel);
+    dataGuruPanel = new DataGuruPanel(cardLayout, mainPanel);
+    dataKelasPanel = new DataKelasPanel(cardLayout, mainPanel);
+    inputNilaiPanel = new InputNilaiPanel(cardLayout, mainPanel);
+    absensiPanel = new AbsensiPanel(cardLayout, mainPanel);
+    pembayaranSPPPanel = new PembayaranSPPPanel(cardLayout, mainPanel);
+    laporanSiswaPanel = new LaporanSIswaPanel(cardLayout, mainPanel);
+    laporanGuruPanel = new LaporanGuruPanel(cardLayout, mainPanel);
+    laporanNilaiPanel = new LaporanNilaiPanel(cardLayout, mainPanel);
+    laporanAbsensiPanel = new LaporanAbsensiPanel(cardLayout, mainPanel);
+    profilSekolahPanel = new ProfilSekolahPanel(cardLayout, mainPanel);
+    cetakRaportPanel = new CetakRaportPanel(cardLayout, mainPanel);
+    kalenderAkademikPanel = new KalenderAkademikPanel(cardLayout, mainPanel);
+    
+    // Update contentPanel
+    contentPanel.removeAll();
+    
+    JScrollPane dashboardScrollPane = new JScrollPane(createDashboardPanel());
+    dashboardScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    dashboardScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+    
+    contentPanel.add(dashboardScrollPane, "dashboard");
+    contentPanel.add(profilSekolahPanel, "profilSekolah");
+    contentPanel.add(dataSiswaPanel, "dataSiswa");
+    contentPanel.add(dataGuruPanel, "dataGuru");
+    contentPanel.add(dataKelasPanel, "dataKelas");
+    contentPanel.add(inputNilaiPanel, "inputNilai");
+    contentPanel.add(absensiPanel, "absensi");
+    contentPanel.add(pembayaranSPPPanel, "pembayaranSPP");
+    contentPanel.add(laporanSiswaPanel, "laporanSiswa");
+    contentPanel.add(laporanGuruPanel, "laporanGuru");
+    contentPanel.add(laporanNilaiPanel, "laporanNilai");
+    contentPanel.add(laporanAbsensiPanel, "laporanAbsensi");
+    contentPanel.add(cetakRaportPanel, "cetakRaport");
+    contentPanel.add(kalenderAkademikPanel, "kalenderAkademik");
+    
+    contentPanel.revalidate();
+    contentPanel.repaint();
+}
 }

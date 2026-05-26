@@ -28,6 +28,14 @@ public class PembayaranSPPPanel extends JPanel {
     public PembayaranSPPPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
+        
+        // Cek akses - hanya admin yang bisa
+        if (!Session.isAdmin()) {
+            JOptionPane.showMessageDialog(null, "⛔ Fitur PEMBAYARAN SPP hanya dapat diakses oleh Administrator!", "Akses Ditolak", JOptionPane.WARNING_MESSAGE);
+            cardLayout.show(mainPanel, "menuUtama");
+            return;
+        }
+        
         rupiahFormat = NumberFormat.getCurrencyInstance(new Locale("in", "ID"));
         initComponents();
         loadDataPembayaran();
@@ -275,7 +283,15 @@ public class PembayaranSPPPanel extends JPanel {
             loadDataPembayaran();
             resetForm();
         });
-        backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
+        backBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menuUtama");
+            for (Component comp : mainPanel.getComponents()) {
+                if (comp instanceof MenuUtamaPanel) {
+                    ((MenuUtamaPanel) comp).showDashboard();
+                    break;
+                }
+            }
+        });
         
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {

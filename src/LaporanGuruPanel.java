@@ -17,6 +17,14 @@ public class LaporanGuruPanel extends JPanel {
     public LaporanGuruPanel(CardLayout cardLayout, JPanel mainPanel) {
         this.cardLayout = cardLayout;
         this.mainPanel = mainPanel;
+        
+        // Cek akses - hanya admin dan kepala sekolah yang bisa
+        if (!Session.isAdmin() && !Session.isKepsek()) {
+            JOptionPane.showMessageDialog(null, "⛔ Fitur LAPORAN GURU hanya dapat diakses oleh Administrator dan Kepala Sekolah!", "Akses Ditolak", JOptionPane.WARNING_MESSAGE);
+            cardLayout.show(mainPanel, "menuUtama");
+            return;
+        }
+        
         initComponents();
         loadData();
     }
@@ -49,7 +57,6 @@ public class LaporanGuruPanel extends JPanel {
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
         
-        // Kolom tabel
         String[] columns = {"No", "NIP", "Nama Guru", "Mata Pelajaran"};
         
         tableModel = new DefaultTableModel(columns, 0);
@@ -59,20 +66,17 @@ public class LaporanGuruPanel extends JPanel {
         table.setShowGrid(true);
         table.setGridColor(new Color(230, 230, 230));
         
-        // Set lebar kolom agar rapi
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);   // No
-        table.getColumnModel().getColumn(1).setPreferredWidth(150);  // NIP
-        table.getColumnModel().getColumn(2).setPreferredWidth(250);  // Nama Guru
-        table.getColumnModel().getColumn(3).setPreferredWidth(200);  // Mata Pelajaran
+        table.getColumnModel().getColumn(0).setPreferredWidth(50);
+        table.getColumnModel().getColumn(1).setPreferredWidth(150);
+        table.getColumnModel().getColumn(2).setPreferredWidth(250);
+        table.getColumnModel().getColumn(3).setPreferredWidth(200);
         
-        // Header tabel
         JTableHeader header = table.getTableHeader();
         header.setFont(new Font("Segoe UI", Font.BOLD, 12));
         header.setBackground(new Color(41, 128, 185));
         header.setForeground(Color.WHITE);
         header.setPreferredSize(new Dimension(0, 35));
         
-        // ScrollPane (bisa scroll horizontal & vertikal)
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -100,7 +104,15 @@ public class LaporanGuruPanel extends JPanel {
         // ============ EVENT HANDLERS ============
         refreshBtn.addActionListener(e -> loadData());
         cetakBtn.addActionListener(e -> cetakPDF());
-        backBtn.addActionListener(e -> cardLayout.show(mainPanel, "menuUtama"));
+        backBtn.addActionListener(e -> {
+            cardLayout.show(mainPanel, "menuUtama");
+            for (Component comp : mainPanel.getComponents()) {
+                if (comp instanceof MenuUtamaPanel) {
+                    ((MenuUtamaPanel) comp).showDashboard();
+                    break;
+                }
+            }
+        });
     }
     
     private JButton createStyledButton(String text, Color bgColor) {
@@ -111,14 +123,6 @@ public class LaporanGuruPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createEmptyBorder(8, 25, 8, 25));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor.darker());
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(bgColor);
-            }
-        });
         return btn;
     }
     
@@ -129,8 +133,8 @@ public class LaporanGuruPanel extends JPanel {
             tableModel.addRow(new Object[]{
                 no++,                           // No
                 guru[0],                        // NIP
-                guru[1],                        // Nama Guru
-                guru[2]                         // Mata Pelajaran
+                guru[2],                        // Nama Guru
+                guru[3]                         // Mata Pelajaran
             });
         }
         
@@ -160,17 +164,17 @@ public class LaporanGuruPanel extends JPanel {
                 com.itextpdf.text.pdf.PdfWriter.getInstance(document, new FileOutputStream(filePath));
                 document.open();
                 
-                com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 18, com.itextpdf.text.Font.BOLD);
-                com.itextpdf.text.Font subTitleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 14, com.itextpdf.text.Font.BOLD);
-                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 11, com.itextpdf.text.Font.NORMAL);
-                com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD);
+                com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 16, com.itextpdf.text.Font.BOLD);
+                com.itextpdf.text.Font subTitleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 12, com.itextpdf.text.Font.BOLD);
+                com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.NORMAL);
+                com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.TIMES_ROMAN, 10, com.itextpdf.text.Font.BOLD);
                 
                 // Logo
                 try {
                     java.net.URL imgUrl = getClass().getResource("/images/smapgri4.png");
                     if (imgUrl != null) {
                         com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(imgUrl);
-                        logo.scaleToFit(60, 60);
+                        logo.scaleToFit(50, 50);
                         logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                         document.add(logo);
                     }
@@ -184,21 +188,6 @@ public class LaporanGuruPanel extends JPanel {
                 com.itextpdf.text.Paragraph subTitle = new com.itextpdf.text.Paragraph("SISTEM INFORMASI AKADEMIK", subTitleFont);
                 subTitle.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(subTitle);
-                
-                com.itextpdf.text.Paragraph address = new com.itextpdf.text.Paragraph("Jl. Raya Bogor KM 24, Ciracas, Jakarta Timur", normalFont);
-                address.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                document.add(address);
-                
-                document.add(new com.itextpdf.text.Paragraph(" "));
-                
-                // Garis
-                com.itextpdf.text.pdf.PdfPTable lineTable = new com.itextpdf.text.pdf.PdfPTable(1);
-                lineTable.setWidthPercentage(100);
-                com.itextpdf.text.pdf.PdfPCell lineCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(" "));
-                lineCell.setBorder(com.itextpdf.text.pdf.PdfPCell.BOTTOM);
-                lineCell.setBorderWidthBottom(2f);
-                lineTable.addCell(lineCell);
-                document.add(lineTable);
                 
                 document.add(new com.itextpdf.text.Paragraph(" "));
                 
@@ -225,7 +214,7 @@ public class LaporanGuruPanel extends JPanel {
                     com.itextpdf.text.pdf.PdfPCell headerCell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header, headerFont));
                     headerCell.setBackgroundColor(new com.itextpdf.text.BaseColor(41, 128, 185));
                     headerCell.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
-                    headerCell.setPadding(8);
+                    headerCell.setPadding(6);
                     pdfTable.addCell(headerCell);
                 }
                 
@@ -233,7 +222,7 @@ public class LaporanGuruPanel extends JPanel {
                     for (int j = 0; j < 4; j++) {
                         String value = tableModel.getValueAt(i, j) != null ? tableModel.getValueAt(i, j).toString() : "";
                         com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(value, normalFont));
-                        cell.setPadding(6);
+                        cell.setPadding(5);
                         pdfTable.addCell(cell);
                     }
                 }
@@ -246,8 +235,7 @@ public class LaporanGuruPanel extends JPanel {
                 footer.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                 document.add(footer);
                 
-                document.add(new com.itextpdf.text.Paragraph(" "));
-                com.itextpdf.text.Paragraph signature = new com.itextpdf.text.Paragraph("Mengetahui,\nKepala Sekolah\n\n\n\n(.................................)", normalFont);
+                com.itextpdf.text.Paragraph signature = new com.itextpdf.text.Paragraph("\n\nMengetahui,\nKepala Sekolah\n\n\n\n(.................................)", normalFont);
                 signature.setAlignment(com.itextpdf.text.Element.ALIGN_RIGHT);
                 document.add(signature);
                 

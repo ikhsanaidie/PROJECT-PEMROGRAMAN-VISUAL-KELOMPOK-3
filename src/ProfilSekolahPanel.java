@@ -323,13 +323,9 @@ public class ProfilSekolahPanel extends JPanel {
         backBtn.setFocusPainted(false);
         backBtn.setBorder(BorderFactory.createEmptyBorder(10, 30, 10, 30));
         backBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        backBtn.addActionListener(e -> {
-            cardLayout.show(mainPanel, "menuUtama");
-            if (mainPanel.getComponent(1) instanceof MenuUtamaPanel) {
-                MenuUtamaPanel menuPanel = (MenuUtamaPanel) mainPanel.getComponent(1);
-                menuPanel.showDashboard();
-            }
-        });
+       backBtn.addActionListener(e -> {
+    cardLayout.show(mainPanel, "menuUtama");
+});
 
         btnWrapper.add(backBtn);
         centerWrapper.add(btnWrapper);

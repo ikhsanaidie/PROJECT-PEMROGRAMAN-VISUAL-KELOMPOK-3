@@ -67,9 +67,8 @@ public class Database {
         return null;
     }
     
-    public static boolean tambahSiswa(String nisn, String nis, String nama, String jk, 
-                                      String tempatLahir, String tglLahir, String agama, 
-                                      String alamat, String noHp, String email, String kelas, 
+    public static boolean tambahSiswa(String nisn, String nis, String nama, String jk, String tempatLahir, String tglLahir, 
+                                      String agama, String alamat, String noHp, String email, String kelas, 
                                       String jurusan, String tahunMasuk, String namaAyah, String namaIbu) {
         String query = "INSERT INTO tbl_siswa (nisn, nis, nama, jk, tempat_lahir, tgl_lahir, agama, alamat, no_hp, email, kelas, jurusan, tahun_masuk, nama_ayah, nama_ibu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
@@ -95,11 +94,9 @@ public class Database {
         }
     }
     
-    public static boolean updateSiswa(String nisnLama, String nisnBaru, String nis, String nama, 
-                                      String jk, String tempatLahir, String tglLahir, 
-                                      String agama, String alamat, String noHp, String email, 
-                                      String kelas, String jurusan, String tahunMasuk, 
-                                      String namaAyah, String namaIbu) {
+    public static boolean updateSiswa(String nisnLama, String nisnBaru, String nis, String nama, String jk, String tempatLahir, 
+                                      String tglLahir, String agama, String alamat, String noHp, String email, String kelas, 
+                                      String jurusan, String tahunMasuk, String namaAyah, String namaIbu) {
         String query = "UPDATE tbl_siswa SET nisn = ?, nis = ?, nama = ?, jk = ?, tempat_lahir = ?, tgl_lahir = ?, agama = ?, alamat = ?, no_hp = ?, email = ?, kelas = ?, jurusan = ?, tahun_masuk = ?, nama_ayah = ?, nama_ibu = ? WHERE nisn = ?";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nisnBaru);
@@ -170,7 +167,7 @@ public class Database {
     // ==================== GURU ====================
     public static List<String[]> getAllGuru() {
         List<String[]> list = new ArrayList<>();
-        String query = "SELECT nip, jk, nama_guru, mapel FROM tbl_guru ORDER BY nip";
+        String query = "SELECT nip, jk, nama_guru, mapel, status FROM tbl_guru ORDER BY nip";
         try (Statement stmt = KoneksiDB.getConnection().createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
@@ -178,7 +175,8 @@ public class Database {
                     rs.getString("nip"),
                     rs.getString("jk") != null ? rs.getString("jk") : "",
                     rs.getString("nama_guru"),
-                    rs.getString("mapel")
+                    rs.getString("mapel"),
+                    rs.getString("status") != null ? rs.getString("status") : "aktif"
                 });
             }
         } catch (SQLException e) {
@@ -188,7 +186,7 @@ public class Database {
     }
     
     public static boolean tambahGuru(String nip, String jk, String nama, String mapel) {
-        String query = "INSERT INTO tbl_guru (nip, jk, nama_guru, mapel) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO tbl_guru (nip, jk, nama_guru, mapel, password, status) VALUES (?, ?, ?, ?, MD5('guru123'), 'aktif')";
         try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
             pstmt.setString(1, nip);
             pstmt.setString(2, jk);
@@ -476,7 +474,7 @@ public class Database {
         return total;
     }
     
-    // ==================== SPP ====================
+    // ==================== SPP (Legacy) ====================
     public static List<Object[]> getAllSPP() {
         List<Object[]> list = new ArrayList<>();
         String query = "SELECT nisn, nama_siswa, bulan, nominal, status, tgl_bayar FROM tbl_spp ORDER BY tgl_bayar DESC";
@@ -533,6 +531,7 @@ public class Database {
         }
     }
     
+    // ==================== TOTAL PEMBAYARAN ====================
     public static double getTotalSPP() {
         double total = 0;
         String query = "SELECT SUM(dibayar) as total FROM tbl_pembayaran WHERE status = 'Lunas'";
@@ -546,4 +545,65 @@ public class Database {
         }
         return total;
     }
+    
+    // ==================== EVENT KALENDER AKADEMIK ====================
+    public static void createTableEvent() {
+        String sql = "CREATE TABLE IF NOT EXISTS tbl_event (" +
+                     "id_event INT PRIMARY KEY AUTO_INCREMENT," +
+                     "judul VARCHAR(200) NOT NULL," +
+                     "deskripsi TEXT," +
+                     "tgl_mulai DATE NOT NULL," +
+                     "tgl_selesai DATE," +
+                     "tipe_event VARCHAR(50)," +
+                     "warna VARCHAR(20)," +
+                     "kelas_target VARCHAR(100) DEFAULT 'Semua Kelas'," +
+                     "dibuat_oleh VARCHAR(100)," +
+                     "tgl_dibuat TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                     ")";
+        try (Statement stmt = KoneksiDB.getConnection().createStatement()) {
+            stmt.execute(sql);
+            System.out.println("Tabel tbl_event siap.");
+        } catch (SQLException e) {
+            System.out.println("Tabel tbl_event: " + e.getMessage());
+        }
+    }
+    
+    // ==================== LOGIN & AUTHENTICATION ====================
+    
+    public static Object[] loginGuru(String nip, String password) {
+        String query = "SELECT nip, nama_guru, mapel FROM tbl_guru WHERE nip = ? AND password = MD5(?) AND status = 'aktif'";
+        try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
+            pstmt.setString(1, nip);
+            pstmt.setString(2, password);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String updateQuery = "UPDATE tbl_guru SET last_login = NOW() WHERE nip = ?";
+                try (PreparedStatement updateStmt = KoneksiDB.getConnection().prepareStatement(updateQuery)) {
+                    updateStmt.setString(1, nip);
+                    updateStmt.executeUpdate();
+                }
+                return new Object[]{rs.getString("nip"), rs.getString("nama_guru"), rs.getString("mapel")};
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+   public static Object[] loginAdmin(String username, String password, String role) {
+    String query = "SELECT username, nama_lengkap, role FROM tbl_user WHERE username = ? AND password = MD5(?) AND role = ? AND status = 'aktif'";
+    try (PreparedStatement pstmt = KoneksiDB.getConnection().prepareStatement(query)) {
+        pstmt.setString(1, username);
+        pstmt.setString(2, password);
+        pstmt.setString(3, role);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) {
+            System.out.println("loginAdmin - role dari database: " + rs.getString("role")); // DEBUG
+            return new Object[]{rs.getString("username"), rs.getString("nama_lengkap"), rs.getString("role")};
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
 }
